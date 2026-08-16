@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /scratch/
+
+# Search Engine Specific
+User-agent: Googlebot
+Allow: /
+
+User-agent: Yandex
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+Sitemap: https://adiru3.github.io/hsay/sitemap.xml
