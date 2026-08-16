@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Primary SEO Meta Tags -->
+  <title>HSAY — How sexy are you? | 3D DeepScan Facial Morphometry & Attractiveness Standard</title>
+  <meta name="title" content="HSAY — How sexy are you? | 3D DeepScan Facial Morphometry & Attractiveness Standard">
+  <meta name="description" content="HSAY (How sexy are you?) is a rigorous facial morphometry, computer vision, and 3D deepscan platform. Calculate your Scientific Facial Attractiveness, Sexual Attractiveness, and PSL Looksmax Community Rating across 40+ biometric dimensions.">
+  <meta name="keywords" content="how sexy are you, HSAY, facial attractiveness, 3D face scan, facial morphometry, cephalometrics, fWHR, hunter eyes, PSL score, looksmax tiers, canthal tilt, facial symmetry, facial harmony, aesthetic potential">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="HSAY DeepScan Team">
+  <link rel="canonical" href="https://adiru3.github.io/hsay/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://adiru3.github.io/hsay/">
+  <meta property="og:title" content="HSAY — How sexy are you? | 3D DeepScan Facial Morphometry">
+  <meta property="og:description" content="Scientific facial attractiveness, sexual dimorphism, and PSL Looksmax community ratings powered by 478 3D landmarks and OpenCV CIELAB dermatology.">
+  <meta property="og:image" content="https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/sparkles.svg">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://adiru3.github.io/hsay/">
+  <meta property="twitter:title" content="HSAY — How sexy are you? | 3D DeepScan Facial Analysis">
+  <meta property="twitter:description" content="Comprehensive scientific morphometry & aesthetic assessment across 40+ observable facial parameters.">
+  <meta property="twitter:image" content="https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/sparkles.svg">
+
+  <!-- Schema.org JSON-LD Structured Data for WebApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "HSAY - How sexy are you?",
+    "url": "https://adiru3.github.io/hsay/",
+    "description": "Scientific 3D deepscan facial morphometry, evolutionary biology analysis, and multi-model attractiveness assessment.",
+    "applicationCategory": "HealthAndFitnessApplication",
+    "operatingSystem": "All",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- MediaPipe CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0307">
+</head>
+<body>
+
+  <!-- Header & Glass Navigation Bar -->
+  <header>
+    <div class="header-container">
+      <div class="logo-group">
+        <div class="logo-icon" title="HSAY — How sexy are you?">
+          <svg class="kiss-logo-svg" viewBox="0 0 24 24" width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C8.5 2 4.5 5 2 9C4.5 10 7.5 9 10 7.5C11 7 11.5 6.5 12 7C12.5 6.5 13 7 14 7.5C16.5 9 19.5 10 22 9C19.5 5 15.5 2 12 2Z" fill="url(#kissGrad1)"/>
+            <path d="M2.5 11C4 13.5 7.5 15.5 12 15.5C16.5 15.5 20 13.5 21.5 11C18.5 12.5 15.5 11.5 13.5 10C12.8 9.5 12 9.5 12 9.5C12 9.5 11.2 9.5 10.5 10C8.5 11.5 5.5 12.5 2.5 11Z" fill="url(#kissGrad2)"/>
+            <path d="M4 13C6.5 18 9.5 21 12 21C14.5 21 17.5 18 20 13C17.5 15.5 14.5 16.5 12 16.5C9.5 16.5 6.5 15.5 4 13Z" fill="url(#kissGrad1)"/>
+            <defs>
+              <linearGradient id="kissGrad1" x1="2" y1="2" x2="22" y2="21" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#fda4af" />
+                <stop offset="0.5" stop-color="#f43f5e" />
+                <stop offset="1" stop-color="#be123c" />
+              </linearGradient>
+              <linearGradient id="kissGrad2" x1="2.5" y1="9.5" x2="21.5" y2="15.5" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#fff1f2" />
+                <stop offset="0.4" stop-color="#fb7185" />
+                <stop offset="1" stop-color="#9f1239" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div>
+          <h1 class="logo-title" data-i18n="appTitle">HSAY</h1>
+          <div class="logo-subtitle" data-i18n="appSubtitle">How sexy are you? — 3D DeepScan Facial Morphometry & Attractiveness Standard</div>
+        </div>
+      </div>
+
+
+      <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+        <!-- Language Switcher Button -->
+        <button id="langSwitchBtn" class="btn-lang" title="Toggle Language (EN / RU)">
+          <i data-lucide="globe" style="width: 15px; height: 15px;"></i>
+          <span id="langSwitchLabel">RU</span>
+        </button>
+
+        <!-- Donate / Contact Button -->
+        <a href="https://adiru3.github.io/Donate/" target="_blank" rel="noopener noreferrer" class="btn-donate" title="Support development or contact creator">
+          <i data-lucide="heart" style="width: 15px; height: 15px; fill: currentColor;"></i>
+          <span data-i18n="headerDonateBtn">Support / Contact</span>
+        </a>
+
+        <!-- Camera Button -->
+        <button id="webcamBtn" class="btn-secondary">
+          <i data-lucide="camera" style="width: 16px; height: 16px;"></i>
+          <span data-i18n="headerCameraBtn">Camera</span>
+        </button>
+
+        <!-- PWA Install Button -->
+        <button id="pwaInstallBtn" class="btn-secondary hidden">
+          <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+          <span data-i18n="headerPwaBtn">Install PWA</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Quality Control & Reliability Banner (Injected dynamically) -->
+  <div id="qualityBanner" class="quality-banner-container"></div>
+
+  <!-- Mode Selector Tabs (Frontal / Profile / DeepScan Composite) -->
+  <div class="mode-tabs-container">
+    <div class="mode-tabs-nav">
+      <button class="mode-tab-btn active" data-mode="frontal">
+        <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+        <span data-i18n="modeFrontal">1. Frontal Analysis (Full Face)</span>
+        <span id="frontalStatusBadge" class="status-indicator-badge empty" data-i18n="statusEmpty">Not uploaded</span>
+      </button>
+      <button class="mode-tab-btn" data-mode="profile">
+        <i data-lucide="scan-line" style="width: 18px; height: 18px;"></i>
+        <span data-i18n="modeProfile">2. Profile 90° (Cephalometrics)</span>
+        <span id="profileStatusBadge" class="status-indicator-badge empty" data-i18n="statusEmpty">Not uploaded</span>
+      </button>
+      <button class="mode-tab-btn" data-mode="composite">
+        <i data-lucide="dna" style="width: 18px; height: 18px;"></i>
+        <span data-i18n="modeComposite">3. DeepScan Composite (Full Passport)</span>
+        <span id="compositeStatusBadge" class="status-indicator-badge empty" data-i18n="statusWaiting">Awaiting Data</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Application Grid -->
+  <main class="app-layout">
+    
+    <!-- Left Column: Image Upload & Viewport -->
+    <section style="display: flex; flex-direction: column; gap: 1.5rem;">
+      
+      <!-- Upload Card -->
+      <div class="glass-card">
+        
+        <!-- Slot Switch / Indicator -->
+        <div class="slot-badge-bar">
+          <div id="currentSlotLabel" class="active-slot-chip">
+            <i data-lucide="target" style="width: 14px; height: 14px;"></i>
+            <span>Current Slot: <strong>Frontal Portrait Photo</strong></span>
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-muted);" data-i18n="calibrationInfo">
+            Frankfurt 3D / Lens 85mm Rectified
+          </div>
+        </div>
+
+        <!-- Dropzone / Upload area -->
+        <div id="dropzone" class="dropzone">
+          <input type="file" id="fileInput" accept="image/*" class="hidden">
+          <div class="dropzone-icon">
+            <i data-lucide="upload-cloud" style="width: 44px; height: 44px;"></i>
+          </div>
+          <div id="dropzoneTitle" class="dropzone-title" data-i18n="dropzoneTitleFrontal">Upload Frontal Portrait</div>
+          <div id="dropzoneHint" class="dropzone-hint" data-i18n="dropzoneHintFrontal">Clear front-facing photo without head tilt (JPG, PNG, WEBP)</div>
+          <button type="button" class="btn-primary" onclick="document.getElementById('fileInput').click()">
+            <i data-lucide="image" style="width: 18px; height: 18px;"></i>
+            <span data-i18n="selectPhotoBtn">Select Photo</span>
+          </button>
+        </div>
+
+        <!-- Gender Selector -->
+        <div class="gender-selector">
+          <button class="gender-btn active" data-gender="male" data-i18n="genderMale">Male Phenotype</button>
+          <button class="gender-btn" data-gender="female" data-i18n="genderFemale">Female Phenotype</button>
+          <button class="gender-btn" data-gender="universal" data-i18n="genderUniversal">Universal</button>
+        </div>
+      </div>
+
+      <!-- Live Viewport Card -->
+      <div class="glass-card viewport-card">
+        
+        <div class="viewport-header-row">
+          <div id="viewportTitle" class="viewport-mode-tag">
+            <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+            <span data-i18n="viewportFrontal">Projection: Frontal</span>
+          </div>
+          <div id="calibrationBadge" class="calibration-badge">
+            <i data-lucide="check-check" style="width: 12px; height: 12px;"></i>
+            <span>Frankfurt 3D / Lens 85mm</span>
+          </div>
+        </div>
+
+        <div class="canvas-wrapper" id="canvasWrapper">
+          <img id="sourceImage" alt="Target image preview" class="hidden">
+          <canvas id="outputCanvas" width="1000" height="1000"></canvas>
+          <canvas id="overlayCanvas" width="1000" height="1000"></canvas>
+        </div>
+
+        <!-- Profile Cephalometric Interactive Marker Toolbar -->
+        <div id="profileEditorToolbar" class="profile-editor-toolbar hidden">
+          <div class="editor-action-bar">
+            <button type="button" id="btnDragMode" class="editor-btn active" title="Drag any anatomical landmarks">
+              <i data-lucide="hand" style="width: 14px; height: 14px;"></i>
+              <span data-i18n="btnDragMode">Drag Landmarks</span>
+            </button>
+            <button type="button" id="btnWizardMode" class="editor-btn" title="Step-by-step guided marking">
+              <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+              <span data-i18n="btnWizardMode">12-Step Wizard</span>
+            </button>
+            <button type="button" id="btnResetAutoPoints" class="editor-btn" title="Reset points to auto detection">
+              <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+              <span data-i18n="btnResetPoints">Auto-Reset</span>
+            </button>
+          </div>
+
+          <!-- Dynamic Step Guidance Prompt -->
+          <div id="editorPromptBanner" class="editor-prompt-banner">
+            <div class="prompt-icon"><i data-lucide="info" style="width: 15px; height: 15px; color: var(--accent-cyan);"></i></div>
+            <div id="editorPromptText" class="prompt-text">
+              <strong>Drag Mode:</strong> Click and drag any anatomical point (G, Prn, Sn, Pog, Go, Ar, C) to update angles in real-time.
+            </div>
+          </div>
+        </div>
+
+        <!-- Canvas Overlay Toggles -->
+        <div id="overlayTogglesContainer" class="overlay-toggles">
+          <span class="toggle-chip active" data-layer="mesh">Mesh (478 pts)</span>
+          <span class="toggle-chip active" data-layer="alignment">Axes & Tilt</span>
+          <span class="toggle-chip active" data-layer="thirds">Thirds & Fifths</span>
+          <span class="toggle-chip active" data-layer="symmetry">Symmetry & FA</span>
+          <span class="toggle-chip active" data-layer="hunter">Hunter Eyes Box</span>
+          <span class="toggle-chip" data-layer="depth3D">3D Depth Vectors</span>
+        </div>
+
+        <!-- Progress Status Bar -->
+        <div id="progressContainer" class="analysis-progress-container hidden">
+          <div class="progress-bar-bg">
+            <div id="progressFill" class="progress-bar-fill"></div>
+          </div>
+          <div class="progress-status-text">
+            <span id="progressStepText">Initializing algorithms...</span>
+            <span id="progressPercent">0%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Results Dashboard -->
+    <section>
+      
+      <!-- Initial State Welcome Card -->
+      <div id="welcomeState" class="glass-card" style="text-align: center; padding: 2.5rem 2rem;">
+        <div style="width: 64px; height: 64px; background: rgba(6, 182, 212, 0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+          <i data-lucide="scan-face" style="width: 32px; height: 32px; color: var(--accent-cyan);"></i>
+        </div>
+        <h2 style="font-size: 1.45rem; font-weight: 700; margin-bottom: 0.75rem;" data-i18n="welcomeTitle">100% Scientific Coverage of Facial Attractiveness</h2>
+        <p style="color: var(--text-muted); font-size: 0.92rem; max-width: 520px; margin: 0 auto 1.5rem auto;" data-i18n="welcomeDesc">
+          Advanced multi-stage pipeline combining 2D craniofacial anthropometry, 90° sagittal cephalometrics, OpenCV CIELAB dermatology, monocular 3D reconstruction, and population statistics with 3 independent evaluation models.
+        </p>
+
+        <!-- Academic Matrix Explanation Pills -->
+        <div class="matrix-overview-grid">
+          <div class="matrix-mini-card border-emerald">
+            <span class="matrix-weight-tag text-emerald">35% Weight</span>
+            <strong>Sexual Dimorphism & Hormones</strong>
+            <p>Gonial angle, brow ridge, fWHR, Ramus index, lip volume</p>
+          </div>
+          <div class="matrix-mini-card border-cyan">
+            <span class="matrix-weight-tag text-cyan">30% Weight</span>
+            <strong>Craniofacial Anthropometry</strong>
+            <p>Midface, E-Line, thirds, fifths, facial convexity G-Sn-Pog</p>
+          </div>
+          <div class="matrix-mini-card border-gold">
+            <span class="matrix-weight-tag text-gold">20% Weight</span>
+            <strong>Facial Fat & Skin Quality</strong>
+            <p>Cheek Hollow, CIELAB σ(a*, b*), Laplacian microrelief, carotenoid b*</p>
+          </div>
+          <div class="matrix-mini-card border-purple">
+            <span class="matrix-weight-tag text-purple">15% Weight</span>
+            <strong>Fluctuating Symmetry</strong>
+            <p>24 bilateral FA landmark pairs, sagittal midline coaxiality</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Results -->
+      <div id="resultsDashboard" class="results-dashboard hidden">
+        
+        <!-- 3 INDEPENDENT SCORE HERO CARDS GRID -->
+        <div class="three-models-grid">
+          
+          <!-- Model 1: Scientific Facial Attractiveness -->
+          <div class="model-hero-card border-ruby-glow">
+            <div class="model-hero-head">
+              <span class="domain-chip badge-scientific">SCIENTIFIC</span>
+              <span class="model-hero-num">Model A</span>
+            </div>
+            <h3 class="model-hero-title" data-i18n="heroScientificTitle">Scientific Facial Attractiveness</h3>
+            
+            <div class="score-ring-wrapper">
+              <svg class="score-circle-svg" viewBox="0 0 160 160">
+                <defs>
+                  <linearGradient id="sciGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f43f5e" />
+                    <stop offset="100%" stop-color="#be123c" />
+                  </linearGradient>
+                </defs>
+                <circle class="score-circle-bg" cx="80" cy="80" r="70" stroke-width="12" fill="none" />
+                <circle id="sciScoreCircle" class="score-circle-progress" cx="80" cy="80" r="70" stroke-width="12" fill="none" />
+              </svg>
+              <div class="score-number-overlay">
+                <div id="sciScoreVal" class="main-score-val text-ruby">00</div>
+                <div class="main-score-max" data-i18n="scoreOutOf100">out of 100</div>
+              </div>
+            </div>
+
+            <div class="model-hero-meta">
+              <div id="sciPercentileText" class="model-percentile-text">Population Percentile: 85% (Z: +1.04)</div>
+              <div id="sciCiText" class="model-ci-text">95% CI: 84 ± 2.8 (81–87)</div>
+            </div>
+          </div>
+
+          <!-- Model 2: Facial Sexual Attractiveness -->
+          <div class="model-hero-card border-rose-glow">
+            <div class="model-hero-head">
+              <span class="domain-chip badge-scientific">SCIENTIFIC</span>
+              <span class="model-hero-num">Model B</span>
+            </div>
+            <h3 class="model-hero-title" data-i18n="heroSexualTitle">Facial Sexual Attractiveness</h3>
+            
+            <div class="score-ring-wrapper">
+              <svg class="score-circle-svg" viewBox="0 0 160 160">
+                <defs>
+                  <linearGradient id="sexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fb7185" />
+                    <stop offset="100%" stop-color="#e11d48" />
+                  </linearGradient>
+                </defs>
+                <circle class="score-circle-bg" cx="80" cy="80" r="70" stroke-width="12" fill="none" />
+                <circle id="sexScoreCircle" class="score-circle-progress stroke-rose" cx="80" cy="80" r="70" stroke-width="12" fill="none" />
+              </svg>
+              <div class="score-number-overlay">
+                <div id="sexScoreVal" class="main-score-val text-rose">00</div>
+                <div class="main-score-max" data-i18n="scoreOutOf100">out of 100</div>
+              </div>
+            </div>
+
+
+            <div class="model-hero-meta">
+              <div id="sexPercentileText" class="model-percentile-text">Population Percentile: 88%</div>
+              <div id="sexCiText" class="model-ci-text">95% CI: 86 ± 3.0 (83–89)</div>
+            </div>
+          </div>
+
+          <!-- Model 3: PSL Looksmax Community Score -->
+          <div class="model-hero-card border-gold-glow">
+            <div class="model-hero-head">
+              <span class="domain-chip badge-community">COMMUNITY METRIC</span>
+              <span class="model-hero-num">Model C</span>
+            </div>
+            <h3 class="model-hero-title" data-i18n="heroPslTitle">PSL Community Rating</h3>
+            
+            <div class="psl-score-display-box">
+              <div id="pslScoreVal" class="psl-score-val text-gold">0.0</div>
+              <div class="psl-score-max" data-i18n="scoreOutOf10">out of 10</div>
+            </div>
+
+            <div class="model-hero-meta">
+              <div id="pslTierBadge" class="tier-badge tier-b">HIGH / ABOVE AVERAGE</div>
+              <div id="pslTierDesc" class="psl-tier-desc">Strong jawline definition and solid facial harmony.</div>
+              <div id="pslPercentileText" class="model-percentile-text">PSL Percentile: 82%</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Reliability Meter Container (Injected dynamically) -->
+        <div id="reliabilityMeterContainer"></div>
+
+        <!-- Aesthetic Potential Card (Model Estimate) -->
+        <div id="potentialCard" class="potential-hero-card glass-card">
+          <div class="potential-header">
+            <div class="potential-title-group">
+              <div class="potential-icon"><i data-lucide="trending-up" style="width: 22px; height: 22px; color: var(--accent-gold);"></i></div>
+              <div>
+                <div class="potential-title" data-i18n="potentialCardTitle">Hypothetical Appearance Optimization Potential</div>
+                <div class="potential-subtitle" id="potentialSubtitle" data-i18n="potentialCardSubtitle">Estimated theoretical ceiling under comprehensive physical and dermatological optimization (Model Estimate)</div>
+              </div>
+            </div>
+            <div id="potentialModelEstimateBadge" class="tier-badge tier-s" data-i18n="potentialModelEstimateTag">MODEL ESTIMATE (Non-guaranteed)</div>
+          </div>
+
+          <div class="potential-metric-comparison">
+            <div class="potential-score-box">
+              <span class="potential-box-label" data-i18n="potentialCurrentLevel">Current Score</span>
+              <div class="potential-box-value text-cyan" id="currentScorePill">0 / 100</div>
+            </div>
+
+            <div class="potential-arrow-divider">
+              <i data-lucide="arrow-right" style="width: 24px; height: 24px; color: var(--accent-gold);"></i>
+              <span class="potential-delta-badge" id="potentialDeltaBadge">+0 pts growth</span>
+            </div>
+
+            <div class="potential-score-box">
+              <span class="potential-box-label" data-i18n="potentialTargetLevel">Optimization Ceiling</span>
+              <div class="potential-box-value text-gold" id="potentialScorePill">0 / 100</div>
+            </div>
+          </div>
+
+          <!-- Dual Progress Bar (Current vs Potential) -->
+          <div class="potential-progress-wrapper">
+            <div class="potential-bar-track">
+              <div id="potentialBaseBar" class="potential-bar-fill-base" style="width: 0%;"></div>
+              <div id="potentialDeltaBar" class="potential-bar-fill-delta" style="width: 0%;"></div>
+            </div>
+            <div class="potential-bar-labels">
+              <span id="potentialCurrentLabel">Current: 0</span>
+              <span id="potentialTargetLabel">Ceiling: 0 (Top 1%)</span>
+            </div>
+          </div>
+
+          <!-- Reserves Breakdown Grid -->
+          <div id="potentialReservesGrid" class="potential-reserves-grid"></div>
+        </div>
+
+        <!-- Scientific Matrix Breakdown Card (Visible in Composite Mode) -->
+        <div id="compositeMatrixCard" class="glass-card hidden" style="margin-bottom: 1.5rem;">
+          <div class="chart-card-header text-emerald">
+            <i data-lucide="dna" style="width: 20px; height: 20px;"></i>
+            <span data-i18n="matrixHeaderTitle">Scientific Weight Matrix (DeepScan Composite)</span>
+          </div>
+          <div class="composite-matrix-bars">
+            
+            <div class="matrix-bar-item">
+              <div class="matrix-bar-head">
+                <span data-i18n="matrixDimorphLabel">1. Sexual Dimorphism & Hormonal Cues (35%)</span>
+                <strong id="matrixDimorphVal" class="text-emerald">0 / 100</strong>
+              </div>
+              <div class="progress-bar-bg"><div id="matrixDimorphBar" class="progress-bar-fill bg-emerald"></div></div>
+            </div>
+
+            <div class="matrix-bar-item">
+              <div class="matrix-bar-head">
+                <span data-i18n="matrixAnthroLabel">2. Craniofacial Anthropometry & Proportions (30%)</span>
+                <strong id="matrixAnthroVal" class="text-cyan">0 / 100</strong>
+              </div>
+              <div class="progress-bar-bg"><div id="matrixAnthroBar" class="progress-bar-fill bg-cyan"></div></div>
+            </div>
+
+            <div class="matrix-bar-item">
+              <div class="matrix-bar-head">
+                <span data-i18n="matrixSkinLabel">3. Facial Adiposity & Skin Quality (20%)</span>
+                <strong id="matrixSkinVal" class="text-gold">0 / 100</strong>
+              </div>
+              <div class="progress-bar-bg"><div id="matrixSkinBar" class="progress-bar-fill bg-gold"></div></div>
+            </div>
+
+            <div class="matrix-bar-item">
+              <div class="matrix-bar-head">
+                <span data-i18n="matrixSymLabel">4. Fluctuating Symmetry (15%)</span>
+                <strong id="matrixSymVal" class="text-purple">0 / 100</strong>
+              </div>
+              <div class="progress-bar-bg"><div id="matrixSymBar" class="progress-bar-fill bg-purple"></div></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Charts & Modules Grid -->
+        <div class="charts-grid">
+          <!-- Radar Chart Card -->
+          <div class="glass-card">
+            <div class="chart-card-header">
+              <i data-lucide="radar" class="text-cyan" style="width: 20px; height: 20px;"></i>
+              <span id="radarTitle" data-i18n="radarAttractivenessTitle">Facial Harmony & Proportions Radar</span>
+            </div>
+            <div class="radar-wrapper">
+              <canvas id="radarChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Summary Pillars -->
+          <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div class="chart-card-header">
+                <i data-lucide="layers" class="text-purple" style="width: 20px; height: 20px;"></i>
+                <span data-i18n="activeModuleStructure">Active Module Structure</span>
+              </div>
+              <p id="summaryCardDesc" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n="academicPercentilesDesc">
+                Academic Z-Scores and population percentiles calculated across all biometric dimensions:
+              </p>
+              
+              <div id="dynamicSubBars" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-glass); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <span style="font-size: 0.8rem; color: var(--text-dim);">MediaPipe 3D Mesh + OpenCV CIELAB</span>
+              <button id="downloadReportBtn" class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
+                <span data-i18n="exportPdfBtn">Print / Export PDF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Metrics Dynamic Container -->
+        <div id="metricsModulesContainer" class="metrics-modules-grid"></div>
+
+        <!-- Recommendations Section -->
+        <div class="recommendations-card">
+          <div class="rec-card-header-bar">
+            <div class="chart-card-header text-gold" style="margin-bottom: 0;">
+              <i data-lucide="lightbulb" style="width: 22px; height: 22px;"></i>
+              <span data-i18n="recsHeader">Personalized Scientific Optimization Protocols</span>
+            </div>
+            <div class="rec-filter-pills" id="recFilterPills">
+              <span class="rec-filter-pill active" data-filter="all" data-i18n="recFilterAll">All Levels</span>
+              <span class="rec-filter-pill" data-filter="soft" data-i18n="recFilterSoft">🟢 Softmaxxing</span>
+              <span class="rec-filter-pill" data-filter="medium" data-i18n="recFilterMedium">🟡 Training & Posture</span>
+              <span class="rec-filter-pill" data-filter="advanced" data-i18n="recFilterAdvanced">🔴 Clinical / Specialized</span>
+            </div>
+          </div>
+          <div id="recommendationsList" class="recommendations-list"></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer with Engine Info, Disclaimer, and Donate Link -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <strong class="text-cyan">HSAY</strong> — <em>How sexy are you?</em>
+        </div>
+        <a href="https://adiru3.github.io/Donate/" target="_blank" rel="noopener noreferrer" class="btn-donate-footer">
+          <i data-lucide="heart" style="width: 14px; height: 14px; fill: currentColor;"></i>
+          <span data-i18n="headerDonateBtn">Support / Contact</span>
+        </a>
+      </div>
+      <p class="footer-engine-text" data-i18n="footerEngineInfo">Powered by MediaPipe 3D Mesh + OpenCV CIELAB + Statistical Population Norms</p>
+      <p class="footer-disclaimer-text" data-i18n="footerDisclaimer">Disclaimer: This software is an anthropometric and aesthetic analysis tool for educational, research, and personal optimization purposes. Monocular 3D estimations are mathematical approximations and do not constitute clinical cephalometric radiography.</p>
+    </div>
+  </footer>
+
+  <!-- Webcam Modal -->
+  <div id="webcamModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 id="webcamModalTitle" style="font-size: 1.2rem; font-weight: 700;" data-i18n="webcamModalTitle">Take Portrait Photo</h3>
+        <button id="closeWebcamModal" class="btn-secondary" style="padding: 0.3rem 0.6rem; border-radius: 8px;">✕</button>
+      </div>
+      <div style="position: relative; width: 100%; aspect-ratio: 4/3; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 1.25rem;">
+        <video id="webcamVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+      </div>
+      <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+        <button id="cancelWebcamBtn" class="btn-secondary" data-i18n="webcamCancelBtn">Cancel</button>
+        <button id="captureWebcamBtn" class="btn-primary">
+          <i data-lucide="camera" style="width: 18px; height: 18px;"></i>
+          <span data-i18n="webcamCaptureBtn">Capture Photo</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OpenCV.js Loader Script -->
+  <script>
+    window.openCvReady = false;
+    function onOpenCvReady() {
+      console.log('OpenCV.js loaded and ready.');
+      window.openCvReady = true;
+      if (window.appReadyCallback) window.appReadyCallback();
+    }
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.9.0-release.2/opencv.js" onload="onOpenCvReady();"></script>
+
+  <!-- Application Modules in Dependency Order -->
+  <script src="js/i18n.js"></script>
+  <script src="js/reference_data.js"></script>
+  <script src="js/quality_control.js"></script>
+  <script src="js/alignment.js"></script>
+  <script src="js/morphometry_2d.js"></script>
+  <script src="js/morphology_3d.js"></script>
+  <script src="js/feature_integration.js"></script>
+  <script src="js/whole_face_embedding.js"></script>
+  <script src="js/anthropometry.js"></script>
+  <script src="js/periorbital.js"></script>
+  <script src="js/cephalometrics.js"></script>
+  <script src="js/symmetry.js"></script>
+  <script src="js/skin_analysis.js"></script>
+  <script src="js/dimorphism.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/visualization.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+    
+    // Register PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration skipped:', err));
+    }
+  </script>
+</body>
+</html>
