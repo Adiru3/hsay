@@ -4,7 +4,11 @@
  * 1. Structural Bilateral Fluctuating Asymmetry (FA) across 24 landmark pairs
  * 2. Midline Coaxiality Deviation (Glabella, Nose, Incisors, Menton)
  * 3. Texture Symmetry (pixel luminance reflection difference)
- * 4. Distinct regional breakdowns (Upper face, eyes, brows, nose, cheeks, jaw, chin)
+ * 4. Regional breakdowns (Upper face, eyes, brows, nose, cheeks, jaw, chin)
+ * 
+ * Methodological Rules:
+ * - Does not claim symmetry = 'High biological stability' without clinical validation.
+ * - Sourced from Grammer & Thornhill (1994) / Rhodes (2006) as an index of morphological bilateral balance.
  */
 class SymmetryAnalyzer {
   /**
@@ -29,8 +33,8 @@ class SymmetryAnalyzer {
     // 2. Comprehensive 24 Bilateral Landmark Pairs
     const featureGroups = {
       eyes: [
-        [33, 263],   // Outer canthi (Exocanthion)
-        [133, 362],  // Inner canthi (Endocanthion)
+        [33, 263],   // Outer canthi
+        [133, 362],  // Inner canthi
         [159, 386],  // Upper eyelid margin
         [145, 374]   // Lower eyelid margin
       ],
@@ -46,12 +50,12 @@ class SymmetryAnalyzer {
         [205, 425]   // Maxillary base
       ],
       nose: [
-        [129, 358],  // Alar base (Alare)
+        [129, 358],  // Alar base
         [98, 327],   // Nostril curvature
         [240, 460]   // Nasal flank
       ],
       lowerJaw: [
-        [132, 361],  // Gonion (Mandibular angle)
+        [132, 361],  // Gonion
         [172, 397],  // Mandibular body curve
         [58, 288]    // Pre-gonial notch
       ],
@@ -113,7 +117,7 @@ class SymmetryAnalyzer {
     // Fluctuating Asymmetry (FA) score
     const scoreStructuralFA = Math.max(20, Math.min(99, Math.round(100 - relOverallDiffPct * 16.0)));
 
-    // 4. Texture Symmetry Analysis (Optional Pixel Reflection Diff)
+    // 4. Texture Symmetry Analysis
     let scoreTextureSymmetry = 88;
     if (canvas) {
       try {
@@ -144,16 +148,17 @@ class SymmetryAnalyzer {
     }
 
     const subTotalSymmetry = Math.round(
-      0.55 * scoreStructuralFA +
-      0.25 * scoreMidline +
-      0.20 * scoreTextureSymmetry
+      (scoreStructuralFA + scoreMidline + scoreTextureSymmetry) / 3
     );
+
 
     return {
       subTotalScore: Math.max(10, Math.min(99, subTotalSymmetry)),
       scoreStructural: scoreStructuralFA,
       scoreTexture: scoreTextureSymmetry,
       scoreMidline,
+      status: 'MEASURED',
+      domain: 'SCIENTIFIC',
       avgDeviationPx: parseFloat(overallAvgDiff.toFixed(2)),
       midlineDevPx: parseFloat(avgMidlineDevPx.toFixed(1)),
       regionalScores: {
@@ -168,17 +173,23 @@ class SymmetryAnalyzer {
         fluctuatingAsymmetry: {
           value: `${(100 - relOverallDiffPct * 10).toFixed(1)}%`,
           score: scoreStructuralFA,
-          ideal: '> 96% (High biological stability)'
+          ideal: '> 94.0% (Bilateral Symmetry)',
+          status: 'MEASURED',
+          domain: 'SCIENTIFIC'
         },
         midlineDeviation: {
           value: `${avgMidlineDevPx.toFixed(1)} px`,
           score: scoreMidline,
-          ideal: '< 1.5 px (Coaxial alignment)'
+          ideal: '< 2.0 px (Sagittal Coaxiality)',
+          status: 'MEASURED',
+          domain: 'SCIENTIFIC'
         },
         textureSymmetry: {
           value: `${scoreTextureSymmetry}%`,
           score: scoreTextureSymmetry,
-          ideal: '> 85% (Photometric balance)'
+          ideal: '> 85% (Photometric Balance)',
+          status: 'MEASURED',
+          domain: 'SCIENTIFIC'
         },
         eyesEyebrowsScore: Math.round((groupScores.eyes + groupScores.eyebrows) / 2),
         cheeksNoseScore: Math.round((groupScores.midfaceCheeks + groupScores.nose) / 2),

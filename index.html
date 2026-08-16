@@ -137,10 +137,18 @@
   <!-- Custom CSS -->
   <link rel="stylesheet" href="styles.css">
 
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="manifest.json">
+  <!-- PWA Manifest (Loaded on HTTP/HTTPS to prevent CORS noise on file:///) -->
+  <script>
+    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+      const manifestLink = document.createElement('link');
+      manifestLink.rel = 'manifest';
+      manifestLink.href = 'manifest.json';
+      document.head.appendChild(manifestLink);
+    }
+  </script>
   <meta name="theme-color" content="#0a0307">
 </head>
+
 <body>
 
   <!-- Header & Glass Navigation Bar -->
@@ -380,13 +388,13 @@
         <!-- 3 INDEPENDENT SCORE HERO CARDS GRID -->
         <div class="three-models-grid">
           
-          <!-- Model 1: Scientific Facial Attractiveness -->
+          <!-- Model A: Perceived Facial Attractiveness -->
           <div class="model-hero-card border-ruby-glow">
             <div class="model-hero-head">
-              <span class="domain-chip badge-scientific">SCIENTIFIC</span>
-              <span class="model-hero-num">Model A</span>
+              <span class="domain-chip badge-scientific">MODEL A</span>
+              <span class="model-hero-sub" data-i18n="heroScientificSubtitle">Research-Informed Model</span>
             </div>
-            <h3 class="model-hero-title" data-i18n="heroScientificTitle">Scientific Facial Attractiveness</h3>
+            <h3 class="model-hero-title" data-i18n="heroScientificTitle">Perceived Facial Attractiveness</h3>
             
             <div class="score-ring-wrapper">
               <svg class="score-circle-svg" viewBox="0 0 160 160">
@@ -406,18 +414,19 @@
             </div>
 
             <div class="model-hero-meta">
-              <div id="sciPercentileText" class="model-percentile-text">Population Percentile: 85% (Z: +1.04)</div>
-              <div id="sciCiText" class="model-ci-text">95% CI: 84 ± 2.8 (81–87)</div>
+              <div id="sciPercentileText" class="model-percentile-text">Predicted human-rating percentile: 74%</div>
+              <div id="sciUncertaintyText" class="model-ci-text">Prediction uncertainty: ±6</div>
+              <div id="sciConfidenceText" class="model-ci-text">Model confidence: 84%</div>
             </div>
           </div>
 
-          <!-- Model 2: Facial Sexual Attractiveness -->
+          <!-- Model B: Perceived Facial Sexual Attractiveness -->
           <div class="model-hero-card border-rose-glow">
             <div class="model-hero-head">
-              <span class="domain-chip badge-scientific">SCIENTIFIC</span>
-              <span class="model-hero-num">Model B</span>
+              <span class="domain-chip badge-scientific">MODEL B</span>
+              <span class="model-hero-sub" data-i18n="heroSexualSubtitle">Research-Informed Model</span>
             </div>
-            <h3 class="model-hero-title" data-i18n="heroSexualTitle">Facial Sexual Attractiveness</h3>
+            <h3 class="model-hero-title" data-i18n="heroSexualTitle">Perceived Facial Sexual Attractiveness</h3>
             
             <div class="score-ring-wrapper">
               <svg class="score-circle-svg" viewBox="0 0 160 160">
@@ -436,18 +445,17 @@
               </div>
             </div>
 
-
             <div class="model-hero-meta">
-              <div id="sexPercentileText" class="model-percentile-text">Population Percentile: 88%</div>
-              <div id="sexCiText" class="model-ci-text">95% CI: 86 ± 3.0 (83–89)</div>
+              <div id="sexPercentileText" class="model-percentile-text">Predicted sexual attractiveness percentile: 81%</div>
+              <div id="sexUncertaintyText" class="model-ci-text">Prediction uncertainty: ±7</div>
             </div>
           </div>
 
-          <!-- Model 3: PSL Looksmax Community Score -->
+          <!-- Model C: PSL Looksmax Community Score -->
           <div class="model-hero-card border-gold-glow">
             <div class="model-hero-head">
-              <span class="domain-chip badge-community">COMMUNITY METRIC</span>
-              <span class="model-hero-num">Model C</span>
+              <span class="domain-chip badge-community">MODEL C</span>
+              <span class="model-hero-sub" data-i18n="heroPslSubtitle">Community Metric</span>
             </div>
             <h3 class="model-hero-title" data-i18n="heroPslTitle">PSL Community Rating</h3>
             
@@ -458,15 +466,21 @@
 
             <div class="model-hero-meta">
               <div id="pslTierBadge" class="tier-badge tier-b">HIGH / ABOVE AVERAGE</div>
-              <div id="pslTierDesc" class="psl-tier-desc">Strong jawline definition and solid facial harmony.</div>
-              <div id="pslPercentileText" class="model-percentile-text">PSL Percentile: 82%</div>
+              <div id="pslPercentileText" class="model-percentile-text">Community percentile: 75%</div>
             </div>
           </div>
 
         </div>
 
+        <!-- Equal-Weight Multi-Domain Architecture Badge Banner -->
+        <div class="equal-weight-chip-banner">
+          <i data-lucide="layers" style="width: 14px; height: 14px; color: #fda4af;"></i>
+          <span data-i18n="equalWeightBanner">6 predefined domains · equal-weight aggregation</span>
+        </div>
+
         <!-- Reliability Meter Container (Injected dynamically) -->
         <div id="reliabilityMeterContainer"></div>
+
 
         <!-- Aesthetic Potential Card (Model Estimate) -->
         <div id="potentialCard" class="potential-hero-card glass-card">
@@ -743,10 +757,11 @@
     // Initialize Lucide icons
     lucide.createIcons();
     
-    // Register PWA Service Worker
-    if ('serviceWorker' in navigator) {
+    // Register PWA Service Worker (only on http/https)
+    if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
       navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration skipped:', err));
     }
   </script>
 </body>
+
 </html>

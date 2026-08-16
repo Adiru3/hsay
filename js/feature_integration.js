@@ -57,8 +57,9 @@ class FeatureIntegrationEngine {
 
     // 6. Jaw-Chin Harmony (Mandibular angle arc and chin symmetry)
     const mandibularTaperScore = m.mandibularTaper.score100;
-    const gonialScore = m.gonialAngle.score100;
+    const gonialScore = (m.gonialAngle && m.gonialAngle.score100) || mandibularTaperScore;
     const jawChinHarmony = Math.round(0.55 * mandibularTaperScore + 0.45 * gonialScore);
+
 
     // 7. Upper-Mid-Lower Proportional Harmony
     const thirdsScore = m.thirds.score100;

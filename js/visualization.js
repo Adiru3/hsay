@@ -293,16 +293,21 @@ class Visualizer {
       const m = report.modules.cephalometrics.metrics;
       labels = lang === 'ru' ? [
         'Гониальный угол', 'Ветвь Ramus', 'Линия E-Line',
-        'Выпуклость G-Sn-Pog', 'Шейный угол', 'Носогубный угол'
+        'Выпуклость G-Sn-Pog', 'Носогубный угол', 'Шейно-подбородочный угол'
       ] : [
         'Gonial Angle', 'Ramus Index', 'Ricketts E-Line',
-        'Facial Convexity', 'Cervicomental', 'Nasolabial'
+        'Facial Convexity', 'Nasolabial Angle', 'Cervicomental Angle'
       ];
       dataScores = [
-        m.gonialAngle.score, m.ramusIndex.score, m.eline.score,
-        m.convexity.score, m.cervicomental.score, m.nasolabial.score
+        m.gonialAngle.score100 || m.gonialAngle.score || 80,
+        m.ramusIndex.score100 || m.ramusIndex.score || 80,
+        m.eline.score100 || m.eline.score || 80,
+        m.convexity.score100 || m.convexity.score || 80,
+        m.nasolabial.score100 || m.nasolabial.score || 80,
+        m.cervicomental.score100 || m.cervicomental.score || 80
       ];
     } else if (report.viewMode === 'composite') {
+
       const sm = report.scientificMatrix;
       labels = lang === 'ru' ? [
         'Половой диморфизм', 'Краниофациальная база', 'Качество кожи & Жир',
@@ -312,9 +317,12 @@ class Visualizer {
         'Symmetry & FA', 'Jaw Architecture', 'Facial Harmony'
       ];
       dataScores = [
-        sm.dimorphism.score, sm.anthropometry.score, sm.skinHealth.score,
-        sm.symmetry.score, report.profileReport ? report.profileReport.modules.cephalometrics.metrics.gonialAngle.score : 85,
-        report.frontalReport ? report.frontalReport.harmony : 88
+        sm.dimorphism.score || 80,
+        sm.anthropometry.score || 80,
+        sm.skinHealth.score || 80,
+        sm.symmetry.score || 80,
+        (report.profileReport && report.profileReport.modules.cephalometrics.metrics.gonialAngle.score) || 85,
+        (report.frontalReport && report.frontalReport.harmony) || 88
       ];
     } else {
       // Frontal default
@@ -327,10 +335,15 @@ class Visualizer {
         'Symmetry FA', 'Dimorphism', 'Harmony'
       ];
       dataScores = [
-        m.anthro.score, m.periorbital.score, m.skin.score,
-        m.symmetry.score, m.dimorphism.score, report.harmony || 85
+        m.anthro.score || 80,
+        m.periorbital.score || 80,
+        m.skin.score || 80,
+        m.symmetry.score || 80,
+        m.dimorphism.score || 80,
+        report.harmony || 85
       ];
     }
+
 
     const ctx = canvas.getContext('2d');
     this.chartInstance = new Chart(ctx, {

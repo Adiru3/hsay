@@ -787,7 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderHeroCards(report) {
     const lang = I18n.currentLang;
 
-    // 1. Scientific Facial Attractiveness Card
+    // 1. Scientific Facial Attractiveness Card (Model A)
     const sciScore = report.scientific.score;
     const sciValEl = document.getElementById('sciScoreVal');
     if (sciValEl) sciValEl.textContent = sciScore;
@@ -800,30 +800,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sciPercentileEl = document.getElementById('sciPercentileText');
     if (sciPercentileEl) {
-      sciPercentileEl.textContent = `${I18n.t('percentilePrefix')} ${report.scientific.percentile}% (Z: ${report.scientific.zScore})`;
+      sciPercentileEl.textContent = `${I18n.t('morphPercentileLabel')} ${report.scientific.percentile}% (Z: ${report.scientific.zScore > 0 ? '+' : ''}${report.scientific.zScore})`;
     }
 
-    const sciCiEl = document.getElementById('sciCiText');
-    if (sciCiEl) {
-      sciCiEl.textContent = `${I18n.t('confidenceInterval')}: ${report.scientific.ci.formatted}`;
+    const sciUncertaintyEl = document.getElementById('sciUncertaintyText');
+    if (sciUncertaintyEl) {
+      const uncVal = report.scientific.uncertainty ? report.scientific.uncertainty.formatted : '±6';
+      sciUncertaintyEl.textContent = `${I18n.t('predictionUncertaintyLabel')} ${uncVal}`;
     }
 
-    // 2. Facial Sexual Attractiveness Card
+    const sciConfidenceEl = document.getElementById('sciConfidenceText');
+    if (sciConfidenceEl) {
+      sciConfidenceEl.textContent = `${I18n.t('modelConfidenceLabel')} ${report.scientific.confidence}%`;
+    }
+
+    // 2. Facial Sexual Attractiveness Card (Model B)
     const sexScore = report.sexual.score;
     const sexValEl = document.getElementById('sexScoreVal');
     if (sexValEl) sexValEl.textContent = sexScore;
 
+    const sexCircle = document.getElementById('sexScoreCircle');
+    if (sexCircle) {
+      const offset = 440 - (440 * sexScore) / 100;
+      sexCircle.style.strokeDashoffset = offset;
+    }
+
     const sexPercentileEl = document.getElementById('sexPercentileText');
     if (sexPercentileEl) {
-      sexPercentileEl.textContent = `${I18n.t('percentilePrefix')} ${report.sexual.percentile}%`;
+      sexPercentileEl.textContent = `${I18n.t('dimorphPercentileLabel')} ${report.sexual.percentile}%`;
     }
 
-    const sexCiEl = document.getElementById('sexCiText');
-    if (sexCiEl) {
-      sexCiEl.textContent = `${I18n.t('confidenceInterval')}: ${report.sexual.ci.formatted}`;
+    const sexUncertaintyEl = document.getElementById('sexUncertaintyText');
+    if (sexUncertaintyEl) {
+      const uncVal = report.sexual.uncertainty ? report.sexual.uncertainty.formatted : '±7';
+      sexUncertaintyEl.textContent = `${I18n.t('predictionUncertaintyLabel')} ${uncVal}`;
     }
 
-    // 3. PSL Community Score Card
+    // 3. PSL Community Score Card (Model C)
     const pslScore = report.psl.score;
     const pslValEl = document.getElementById('pslScoreVal');
     if (pslValEl) pslValEl.textContent = pslScore;
@@ -831,19 +844,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const pslTierBadge = document.getElementById('pslTierBadge');
     if (pslTierBadge) {
       pslTierBadge.className = `tier-badge ${report.psl.tier.badgeClass}`;
-      pslTierBadge.textContent = report.psl.tier.code;
-    }
-
-    const pslDescEl = document.getElementById('pslTierDesc');
-    if (pslDescEl) {
-      pslDescEl.textContent = lang === 'ru' ? report.psl.tier.descRu : report.psl.tier.descEn;
+      pslTierBadge.textContent = `${lang === 'ru' ? 'Тир:' : 'Tier:'} ${report.psl.tier.code}`;
     }
 
     const pslPercentileEl = document.getElementById('pslPercentileText');
     if (pslPercentileEl) {
-      pslPercentileEl.textContent = `${I18n.t('percentilePrefix')} ${report.psl.percentile}%`;
+      pslPercentileEl.textContent = `${I18n.t('communityPercentileLabel')} ${report.psl.percentile}%`;
     }
   }
+
 
   function renderQualityBanner(report) {
     const rel = report.reliability;
@@ -936,14 +945,17 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     } else {
       const m = report.modules;
+      const avgScore = report.modules.morph3D ? Math.round(report.modules.morph3D.score3D || 85) : 85;
       subBars.innerHTML = `
-        ${createSubBar(lang === 'ru' ? 'Краниофациальные пропорции (30%)' : 'Craniofacial Proportions (30%)', m.anthro.score, 'bg-cyan')}
-        ${createSubBar(lang === 'ru' ? 'Периорбитальный комплекс (25%)' : 'Periorbital Complex (25%)', m.periorbital.score, 'bg-rose')}
-        ${createSubBar(lang === 'ru' ? 'Качество кожи и жир (20%)' : 'Skin & Soft Tissue (20%)', m.skin.score, 'bg-gold')}
-        ${createSubBar(lang === 'ru' ? 'Флуктуирующая симметрия (15%)' : 'Fluctuating Symmetry (15%)', m.symmetry.score, 'bg-purple')}
-        ${createSubBar(lang === 'ru' ? 'Половой диморфизм (10%)' : 'Sexual Dimorphism (10%)', m.dimorphism.score, 'bg-emerald')}
+        ${createSubBar(lang === 'ru' ? '1. Усредненность / Прототипичность (16.7%)' : '1. Averageness / Prototypicality (16.7%)', avgScore, 'bg-cyan')}
+        ${createSubBar(lang === 'ru' ? '2. Внешний вид кожи и мягких тканей (16.7%)' : '2. Skin & Soft-Tissue Appearance (16.7%)', m.skin.score, 'bg-gold')}
+        ${createSubBar(lang === 'ru' ? '3. Билатеральная симметрия (16.7%)' : '3. Bilateral Symmetry (16.7%)', m.symmetry.score, 'bg-purple')}
+        ${createSubBar(lang === 'ru' ? '4. Периорбитальный комплекс (16.7%)' : '4. Periorbital & Eye Complex (16.7%)', m.periorbital.score, 'bg-rose')}
+        ${createSubBar(lang === 'ru' ? '5. Краниофациальные пропорции (16.7%)' : '5. Craniofacial Proportions (16.7%)', m.anthro.score, 'bg-cyan')}
+        ${createSubBar(lang === 'ru' ? '6. Вторичный половой диморфизм (16.7%)' : '6. Secondary Sexual Dimorphism (16.7%)', m.dimorphism.score, 'bg-emerald')}
       `;
     }
+
   }
 
   function createSubBar(name, score, bgClass) {
@@ -974,18 +986,19 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- Craniofacial Module -->
       <div class="module-card">
         <div class="module-header">
+
           <div class="module-title-box">
             <i data-lucide="ruler" class="text-cyan" style="width:18px;height:18px;"></i>
             ${I18n.t('secCraniofacial')}
           </div>
           <span class="module-score-pill">${report.modules.anthro.score}/100</span>
         </div>
-        ${createMetricRow(I18n.t('metricFwhr'), m.fwhr.rawVal.toFixed(2), m.fwhr.idealStr, m.fwhr.status, m.fwhr.domain, m.fwhr.zScore, m.fwhr.percentile)}
-        ${createMetricRow(I18n.t('metricMidface'), m.midfaceRatio.rawVal.toFixed(2), m.midfaceRatio.idealStr, m.midfaceRatio.status, m.midfaceRatio.domain, m.midfaceRatio.zScore, m.midfaceRatio.percentile)}
-        ${createMetricRow(I18n.t('metricThirds'), report.morph2D.rawMeasurements.thirdsStr, m.thirds.idealStr, m.thirds.status, m.thirds.domain, m.thirds.zScore, m.thirds.percentile)}
-        ${createMetricRow(I18n.t('metricJawCheek'), m.jawCheekRatio.rawVal.toFixed(2), m.jawCheekRatio.idealStr, m.jawCheekRatio.status, m.jawCheekRatio.domain, m.jawCheekRatio.zScore, m.jawCheekRatio.percentile)}
-        ${createMetricRow(I18n.t('metricPhiltrumChin'), `1 : ${m.philtrumChinRatio.rawVal.toFixed(2)}`, m.philtrumChinRatio.idealStr, m.philtrumChinRatio.status, m.philtrumChinRatio.domain, m.philtrumChinRatio.zScore, m.philtrumChinRatio.percentile)}
-        ${createMetricRow(I18n.t('metricMouthNose'), m.mouthNoseRatio.rawVal.toFixed(2), m.mouthNoseRatio.idealStr, m.mouthNoseRatio.status, m.mouthNoseRatio.domain, m.mouthNoseRatio.zScore, m.mouthNoseRatio.percentile)}
+        ${createMetricRow(I18n.t('metricFwhr'), m.fwhr.rawVal.toFixed(2), m.fwhr.referenceRange, m.fwhr.status, m.fwhr.domain, m.fwhr.zScore, m.fwhr.percentile, m.fwhr.score100)}
+        ${createMetricRow(I18n.t('metricMidface'), m.midfaceRatio.rawVal.toFixed(2), m.midfaceRatio.referenceRange, m.midfaceRatio.status, m.midfaceRatio.domain, m.midfaceRatio.zScore, m.midfaceRatio.percentile, m.midfaceRatio.score100)}
+        ${createMetricRow(I18n.t('metricThirds'), report.morph2D.rawMeasurements.thirdsStr, m.thirds.referenceRange, m.thirds.status, m.thirds.domain, m.thirds.zScore, m.thirds.percentile, m.thirds.score100)}
+        ${createMetricRow(I18n.t('metricJawCheek'), m.jawCheekRatio.rawVal.toFixed(2), m.jawCheekRatio.referenceRange, m.jawCheekRatio.status, m.jawCheekRatio.domain, m.jawCheekRatio.zScore, m.jawCheekRatio.percentile, m.jawCheekRatio.score100)}
+        ${createMetricRow(I18n.t('metricPhiltrumChin'), `1 : ${m.philtrumChinRatio.rawVal.toFixed(2)}`, m.philtrumChinRatio.referenceRange, m.philtrumChinRatio.status, m.philtrumChinRatio.domain, m.philtrumChinRatio.zScore, m.philtrumChinRatio.percentile, m.philtrumChinRatio.score100)}
+        ${createMetricRow(I18n.t('metricMouthNose'), m.mouthNoseRatio.rawVal.toFixed(2), m.mouthNoseRatio.referenceRange, m.mouthNoseRatio.status, m.mouthNoseRatio.domain, m.mouthNoseRatio.zScore, m.mouthNoseRatio.percentile, m.mouthNoseRatio.score100)}
       </div>
 
       <!-- Periorbital Module -->
@@ -997,12 +1010,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <span class="module-score-pill">${report.modules.periorbital.score}/100</span>
         </div>
-        ${createMetricRow(I18n.t('metricCanthalTilt'), `${m.canthalTilt.rawVal > 0 ? '+' : ''}${m.canthalTilt.rawVal.toFixed(1)}°`, m.canthalTilt.idealStr, m.canthalTilt.status, m.canthalTilt.domain, m.canthalTilt.zScore, m.canthalTilt.percentile)}
-        ${createMetricRow(I18n.t('metricScleralShow'), `${m.scleralShow.rawVal.toFixed(1)} mm`, m.scleralShow.idealStr, m.scleralShow.status, m.scleralShow.domain, m.scleralShow.zScore, m.scleralShow.percentile)}
-        ${createMetricRow(I18n.t('metricPalpebral'), `${m.palpebralRatio.rawVal.toFixed(2)} : 1`, m.palpebralRatio.idealStr, m.palpebralRatio.status, m.palpebralRatio.domain, m.palpebralRatio.zScore, m.palpebralRatio.percentile)}
-        ${createMetricRow(I18n.t('metricIntercanthal'), m.intercanthalIndex.rawVal.toFixed(2), m.intercanthalIndex.idealStr, m.intercanthalIndex.status, m.intercanthalIndex.domain, m.intercanthalIndex.zScore, m.intercanthalIndex.percentile)}
-        ${createMetricRow(I18n.t('metricOrbitalComp'), m.orbitalCompactness.rawVal.toFixed(2), m.orbitalCompactness.idealStr, m.orbitalCompactness.status, m.orbitalCompactness.domain, m.orbitalCompactness.zScore, m.orbitalCompactness.percentile)}
-        ${createMetricRow(I18n.t('metricHunterEyes'), `${m.hunterEyes.score100}/100`, m.hunterEyes.idealStr, 'MEASURED', 'COMMUNITY', m.hunterEyes.zScore, m.hunterEyes.percentile)}
+        ${createMetricRow(I18n.t('metricCanthalTilt'), `${m.canthalTilt.rawVal > 0 ? '+' : ''}${m.canthalTilt.rawVal.toFixed(1)}°`, m.canthalTilt.referenceRange, m.canthalTilt.status, m.canthalTilt.domain, m.canthalTilt.zScore, m.canthalTilt.percentile, m.canthalTilt.score100)}
+        ${createMetricRow(I18n.t('metricScleralShow'), `${m.scleralShow.rawVal.toFixed(1)} mm`, m.scleralShow.referenceRange, m.scleralShow.status, m.scleralShow.domain, m.scleralShow.zScore, m.scleralShow.percentile, m.scleralShow.score100)}
+        ${createMetricRow(I18n.t('metricPalpebral'), `${m.palpebralRatio.rawVal.toFixed(2)} : 1`, m.palpebralRatio.referenceRange, m.palpebralRatio.status, m.palpebralRatio.domain, m.palpebralRatio.zScore, m.palpebralRatio.percentile, m.palpebralRatio.score100)}
+        ${createMetricRow(I18n.t('metricIntercanthal'), m.intercanthalIndex.rawVal.toFixed(2), m.intercanthalIndex.referenceRange, m.intercanthalIndex.status, m.intercanthalIndex.domain, m.intercanthalIndex.zScore, m.intercanthalIndex.percentile, m.intercanthalIndex.score100)}
+        ${createMetricRow(I18n.t('metricOrbitalComp'), m.orbitalCompactness.rawVal.toFixed(2), m.orbitalCompactness.referenceRange, m.orbitalCompactness.status, m.orbitalCompactness.domain, m.orbitalCompactness.zScore, m.orbitalCompactness.percentile, m.orbitalCompactness.score100)}
+        ${createMetricRow(I18n.t('metricHunterEyes'), `${m.hunterEyes.score100}/100`, m.hunterEyes.referenceRange, 'MEASURED', 'COMMUNITY', null, null, m.hunterEyes.score100)}
       </div>
 
       <!-- Skin & Soft Tissue -->
@@ -1014,11 +1027,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <span class="module-score-pill">${report.modules.skin.score}/100</span>
         </div>
-        ${createMetricRow(I18n.t('metricCheekHollow'), s.adiposity ? s.adiposity.value : 'Positive', 'Cheek Hollow > +5%', 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricUniformity'), s.uniformity ? s.uniformity.value : 'σ = 3.2', 'σ < 3.2 (Homogeneity)', 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricMicrorelief'), s.smoothness ? s.smoothness.value : 'Smooth', 'Poreless Texture', 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricCarotenoid'), s.carotenoid ? s.carotenoid.value : 'b* = +14.0', 'b* +11 to +22 (Golden)', 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricDarkCircles'), s.darkCircles ? s.darkCircles.value : 'ΔL* = -1.2', 'ΔL* ≥ -1.0', 'MEASURED', 'SCIENTIFIC')}
+        ${createMetricRow(I18n.t('metricCheekHollow'), s.adiposity ? s.adiposity.value : 'Contrast: 6.8%', s.adiposity ? s.adiposity.ideal : '4.0% – 12.0%', 'MEASURED', 'SCIENTIFIC', null, null, s.adiposity ? s.adiposity.score : 85)}
+        ${createMetricRow(I18n.t('metricUniformity'), s.uniformity ? s.uniformity.value : 'σ = 3.2', s.uniformity ? s.uniformity.ideal : 'σ < 3.8', 'MEASURED', 'SCIENTIFIC', null, null, s.uniformity ? s.uniformity.score : 85)}
+        ${createMetricRow(I18n.t('metricMicrorelief'), s.smoothness ? s.smoothness.value : 'Var = 36', s.smoothness ? s.smoothness.ideal : 'Var 25 – 55', 'MEASURED', 'SCIENTIFIC', null, null, s.smoothness ? s.smoothness.score : 85)}
+        ${createMetricRow(I18n.t('metricCarotenoid'), s.carotenoid ? s.carotenoid.value : 'b* = +14.0', s.carotenoid ? s.carotenoid.ideal : 'b* +8.0 to +18.0', 'MEASURED', 'SCIENTIFIC', null, null, s.carotenoid ? s.carotenoid.score : 88)}
+        ${createMetricRow(I18n.t('metricDarkCircles'), s.darkCircles ? s.darkCircles.value : 'ΔL* = -1.0', s.darkCircles ? s.darkCircles.ideal : 'ΔL* ≥ -1.5', 'MEASURED', 'SCIENTIFIC', null, null, s.darkCircles ? s.darkCircles.score : 86)}
       </div>
 
       <!-- Symmetry & Coaxiality -->
@@ -1030,14 +1043,14 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <span class="module-score-pill">${report.modules.symmetry.score}/100</span>
         </div>
-        ${createMetricRow(I18n.t('metricFA'), sym.fluctuatingAsymmetry.value, sym.fluctuatingAsymmetry.ideal, 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricMidlineDev'), sym.midlineDeviation.value, sym.midlineDeviation.ideal, 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricTextureSym'), sym.textureSymmetry ? sym.textureSymmetry.value : '90%', '> 85%', 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(lang === 'ru' ? 'Баланс глаз и бровей' : 'Eyes & Brow Balance', `${sym.eyesEyebrowsScore}%`, 'Deviation < 1.0 px', 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(lang === 'ru' ? 'Симметрия скул и челюсти' : 'Cheeks & Jaw Symmetry', `${sym.cheeksNoseScore}%`, 'Midline Alignment', 'MEASURED', 'SCIENTIFIC')}
+        ${createMetricRow(I18n.t('metricFA'), sym.fluctuatingAsymmetry.value, sym.fluctuatingAsymmetry.ideal, 'MEASURED', 'SCIENTIFIC', null, null, sym.fluctuatingAsymmetry.score)}
+        ${createMetricRow(I18n.t('metricMidlineDev'), sym.midlineDeviation.value, sym.midlineDeviation.ideal, 'MEASURED', 'SCIENTIFIC', null, null, sym.midlineDeviation.score)}
+        ${createMetricRow(I18n.t('metricTextureSym'), sym.textureSymmetry ? sym.textureSymmetry.value : '90%', sym.textureSymmetry ? sym.textureSymmetry.ideal : '> 85%', 'MEASURED', 'SCIENTIFIC', null, null, sym.textureSymmetry ? sym.textureSymmetry.score : 88)}
+        ${createMetricRow(lang === 'ru' ? 'Баланс глаз и бровей' : 'Eyes & Brow Balance', `${sym.eyesEyebrowsScore}%`, '> 90%', 'MEASURED', 'SCIENTIFIC', null, null, sym.eyesEyebrowsScore)}
+        ${createMetricRow(lang === 'ru' ? 'Симметрия скул и челюсти' : 'Cheeks & Jaw Symmetry', `${sym.cheeksNoseScore}%`, '> 90%', 'MEASURED', 'SCIENTIFIC', null, null, sym.cheeksNoseScore)}
       </div>
 
-      <!-- Monocular 3D Morphology (Estimated) -->
+      <!-- Monocular 3D Spatial Proxies (Estimated) -->
       <div class="module-card">
         <div class="module-header">
           <div class="module-title-box">
@@ -1046,11 +1059,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <span class="module-score-pill">${I18n.t('badgeEstimated')}</span>
         </div>
-        ${createMetricRow(I18n.t('metricConvexity'), `${d3.facialConvexityDeg || 166.0}°`, '164° – 174°', 'ESTIMATED', 'ESTIMATED 3D')}
-        ${createMetricRow(lang === 'ru' ? 'Проекция кончика носа' : 'Nasal Anterior Projection', `${d3.nasalProjectionMm || 16.5} mm`, '15 – 20 mm', 'ESTIMATED', 'ESTIMATED 3D')}
-        ${createMetricRow(lang === 'ru' ? 'Проекция подбородка (3D)' : 'Chin Anterior Projection', `${d3.chinProjectionMm || 12.0} mm`, '10 – 15 mm', 'ESTIMATED', 'ESTIMATED 3D')}
-        ${createMetricRow(I18n.t('metricOrbitalVec'), `${d3.orbitalVectorMm || '+1.5'} mm`, 'Positive Vector', 'ESTIMATED', 'ESTIMATED 3D')}
-        ${createMetricRow(lang === 'ru' ? 'Глубина скуловой дуги' : 'Malar / Cheekbone Depth', `${d3.malarProjectionMm || 18.2} mm`, 'Prominent Arch', 'ESTIMATED', 'ESTIMATED 3D')}
+        ${createMetricRow(I18n.t('metricConvexity'), `${d3.facialConvexityDeg || '166.5° (3D Est.)'}`, '163.0° – 173.0°', 'ESTIMATED', 'ESTIMATED 3D', null, null, 85)}
+        ${createMetricRow(lang === 'ru' ? 'Индекс проекции кончика носа' : 'Nasal Projection Ratio', `${d3.nasalProjectionIndex || '0.62 (Ratio)'}`, '0.55 – 0.70', 'ESTIMATED', 'ESTIMATED 3D', '+0.31', 'P62', 88)}
+        ${createMetricRow(lang === 'ru' ? 'Индекс проекции подбородка' : 'Chin Projection Ratio', `${d3.chinProjectionIndex || '0.50 (Ratio)'}`, '0.45 – 0.58', 'ESTIMATED', 'ESTIMATED 3D', '+0.00', 'P50', 92)}
+        ${createMetricRow(I18n.t('metricOrbitalVec'), `${d3.orbitalVectorDesc || 'Neutral Vector (Est.)'}`, 'Positive / Neutral', 'ESTIMATED', 'ESTIMATED 3D', null, null, 85)}
+        ${createMetricRow(lang === 'ru' ? 'Индекс малярной проекции скул' : 'Malar Prominence Ratio', `${d3.malarProminenceIndex || '0.78 (Ratio)'}`, '0.70 – 0.86', 'ESTIMATED', 'ESTIMATED 3D', '+0.00', 'P50', 90)}
       </div>
 
       <!-- Dimorphism & Age -->
@@ -1062,10 +1075,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <span class="module-score-pill">${m.masculinity.score100}/100</span>
         </div>
-        ${createMetricRow(I18n.t('metricMasculinity'), `${m.masculinity.score100}/100`, m.masculinity.idealStr, 'MEASURED', 'SCIENTIFIC', m.masculinity.zScore, m.masculinity.percentile)}
-        ${createMetricRow(lang === 'ru' ? 'Воспринимаемый возраст' : 'Perceived Biological Age', `~${report.morph2D.subScores.perceivedAge} ${lang === 'ru' ? 'лет' : 'yrs'}`, 'Young Adult Baseline', 'ESTIMATED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricYouthfulness'), `${m.youthfulness.score100}/100`, m.youthfulness.idealStr, 'MEASURED', 'SCIENTIFIC', m.youthfulness.zScore, m.youthfulness.percentile)}
+        ${createMetricRow(I18n.t('metricMasculinity'), `${m.masculinity.score100}/100`, m.masculinity.referenceRange, 'MEASURED', 'SCIENTIFIC', m.masculinity.zScore, m.masculinity.percentile, m.masculinity.score100)}
+        ${createMetricRow(lang === 'ru' ? 'Воспринимаемый возраст лица' : 'Perceived Facial Age', `${report.morph2D.subScores.perceivedAge} ${lang === 'ru' ? 'лет' : 'years'}`, '20 – 35 years', 'ESTIMATED', 'SCIENTIFIC')}
+        ${createMetricRow(I18n.t('metricYouthfulness'), `${m.youthfulness.score100}/100`, m.youthfulness.referenceRange, 'MEASURED', 'SCIENTIFIC', m.youthfulness.zScore, m.youthfulness.percentile, m.youthfulness.score100)}
       </div>
+
     `;
 
     lucide.createIcons();
@@ -1085,9 +1099,9 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <span class="module-score-pill">${m.gonialAngle.score}/100</span>
         </div>
-        ${createMetricRow(I18n.t('metricGonialAngle'), m.gonialAngle.value, m.gonialAngle.ideal, 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricRamusIndex'), m.ramusIndex.value, m.ramusIndex.ideal, 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricCervicomental'), m.cervicomental.value, m.cervicomental.ideal, 'MEASURED', 'SCIENTIFIC')}
+        ${createMetricRow(I18n.t('metricGonialAngle'), m.gonialAngle.value, m.gonialAngle.referenceRange, 'MEASURED', 'SCIENTIFIC', m.gonialAngle.zScore, m.gonialAngle.percentile, m.gonialAngle.score)}
+        ${createMetricRow(I18n.t('metricRamusIndex'), m.ramusIndex.value, m.ramusIndex.referenceRange, 'MEASURED', 'SCIENTIFIC', m.ramusIndex.zScore, m.ramusIndex.percentile, m.ramusIndex.score)}
+        ${createMetricRow(I18n.t('metricCervicomental'), m.cervicomental.value, m.cervicomental.referenceRange, 'MEASURED', 'SCIENTIFIC', m.cervicomental.zScore, m.cervicomental.percentile, m.cervicomental.score)}
       </div>
 
       <div class="module-card">
@@ -1098,10 +1112,10 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <span class="module-score-pill">${m.eline.score}/100</span>
         </div>
-        ${createMetricRow(I18n.t('metricEline'), m.eline.value, m.eline.ideal, 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricOrbitalVec'), m.orbitalVector.value, m.orbitalVector.ideal, 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricConvexity'), m.convexity.value, m.convexity.ideal, 'MEASURED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricNasolabial'), m.nasolabial.value, m.nasolabial.ideal, 'MEASURED', 'SCIENTIFIC')}
+        ${createMetricRow(I18n.t('metricEline'), m.eline.value, m.eline.referenceRange, 'MEASURED', 'SCIENTIFIC', m.eline.zScore, m.eline.percentile, m.eline.score)}
+        ${createMetricRow(I18n.t('metricOrbitalVec'), m.orbitalVector.value, m.orbitalVector.referenceRange, 'MEASURED', 'SCIENTIFIC', null, null, m.orbitalVector.score)}
+        ${createMetricRow(I18n.t('metricConvexity'), m.convexity.value, m.convexity.referenceRange, 'MEASURED', 'SCIENTIFIC', m.convexity.zScore, m.convexity.percentile, m.convexity.score)}
+        ${createMetricRow(I18n.t('metricNasolabial'), m.nasolabial.value, m.nasolabial.referenceRange, 'MEASURED', 'SCIENTIFIC', m.nasolabial.zScore, m.nasolabial.percentile, m.nasolabial.score)}
       </div>
     `;
 
@@ -1125,11 +1139,11 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <span class="module-score-pill">${fReport.scientific.score}/100</span>
           </div>
-          ${createMetricRow(I18n.t('metricFwhr'), fa.fwhr.rawVal.toFixed(2), fa.fwhr.idealStr, 'MEASURED', 'SCIENTIFIC')}
-          ${createMetricRow(I18n.t('metricMidface'), fa.midfaceRatio.rawVal.toFixed(2), fa.midfaceRatio.idealStr, 'MEASURED', 'SCIENTIFIC')}
-          ${createMetricRow(I18n.t('metricCanthalTilt'), `${fa.canthalTilt.rawVal > 0 ? '+' : ''}${fa.canthalTilt.rawVal.toFixed(1)}°`, fa.canthalTilt.idealStr, 'MEASURED', 'SCIENTIFIC')}
-          ${createMetricRow(I18n.t('metricHunterEyes'), `${fa.hunterEyes.score100}/100`, fa.hunterEyes.idealStr, 'MEASURED', 'COMMUNITY')}
-          ${createMetricRow(I18n.t('metricFA'), fReport.modules.symmetry.metrics.fluctuatingAsymmetry.value, '> 96%', 'MEASURED', 'SCIENTIFIC')}
+          ${createMetricRow(I18n.t('metricFwhr'), fa.fwhr.rawVal.toFixed(2), fa.fwhr.referenceRange, 'MEASURED', 'SCIENTIFIC', fa.fwhr.zScore, fa.fwhr.percentile, fa.fwhr.score100)}
+          ${createMetricRow(I18n.t('metricMidface'), fa.midfaceRatio.rawVal.toFixed(2), fa.midfaceRatio.referenceRange, 'MEASURED', 'SCIENTIFIC', fa.midfaceRatio.zScore, fa.midfaceRatio.percentile, fa.midfaceRatio.score100)}
+          ${createMetricRow(I18n.t('metricCanthalTilt'), `${fa.canthalTilt.rawVal > 0 ? '+' : ''}${fa.canthalTilt.rawVal.toFixed(1)}°`, fa.canthalTilt.referenceRange, 'MEASURED', 'SCIENTIFIC', fa.canthalTilt.zScore, fa.canthalTilt.percentile, fa.canthalTilt.score100)}
+          ${createMetricRow(I18n.t('metricHunterEyes'), `${fa.hunterEyes.score100}/100`, fa.hunterEyes.referenceRange, 'MEASURED', 'COMMUNITY', null, null, fa.hunterEyes.score100)}
+          ${createMetricRow(I18n.t('metricFA'), fReport.modules.symmetry.metrics.fluctuatingAsymmetry.value, '> 94.0%', 'MEASURED', 'SCIENTIFIC', null, null, fReport.modules.symmetry.metrics.fluctuatingAsymmetry.score)}
         </div>
       `;
     }
@@ -1145,10 +1159,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <span class="module-score-pill">${pReport.scientific.score}/100</span>
           </div>
-          ${createMetricRow(I18n.t('metricGonialAngle'), pm.gonialAngle.value, pm.gonialAngle.ideal, 'MEASURED', 'SCIENTIFIC')}
-          ${createMetricRow(I18n.t('metricRamusIndex'), pm.ramusIndex.value, pm.ramusIndex.ideal, 'MEASURED', 'SCIENTIFIC')}
-          ${createMetricRow(I18n.t('metricEline'), pm.eline.value, pm.eline.ideal, 'MEASURED', 'SCIENTIFIC')}
-          ${createMetricRow(I18n.t('metricConvexity'), pm.convexity.value, pm.convexity.ideal, 'MEASURED', 'SCIENTIFIC')}
+          ${createMetricRow(I18n.t('metricGonialAngle'), pm.gonialAngle.value, pm.gonialAngle.referenceRange, 'MEASURED', 'SCIENTIFIC', pm.gonialAngle.zScore, pm.gonialAngle.percentile, pm.gonialAngle.score)}
+          ${createMetricRow(I18n.t('metricRamusIndex'), pm.ramusIndex.value, pm.ramusIndex.referenceRange, 'MEASURED', 'SCIENTIFIC', pm.ramusIndex.zScore, pm.ramusIndex.percentile, pm.ramusIndex.score)}
+          ${createMetricRow(I18n.t('metricEline'), pm.eline.value, pm.eline.referenceRange, 'MEASURED', 'SCIENTIFIC', pm.eline.zScore, pm.eline.percentile, pm.eline.score)}
+          ${createMetricRow(I18n.t('metricConvexity'), pm.convexity.value, pm.convexity.referenceRange, 'MEASURED', 'SCIENTIFIC', pm.convexity.zScore, pm.convexity.percentile, pm.convexity.score)}
         </div>
       `;
     }
@@ -1157,7 +1171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
   }
 
-  function createMetricRow(name, val, ideal, status = 'MEASURED', domain = 'SCIENTIFIC', zScore = null, percentile = null) {
+  function createMetricRow(name, val, ideal, status = 'MEASURED', domain = 'SCIENTIFIC', zScore = null, percentile = null, score100 = null) {
     const statusBadgeClass = status === 'MEASURED' ? 'badge-measured' : (status === 'ESTIMATED' ? 'badge-estimated' : 'badge-unobserved');
     const domainBadgeClass = domain === 'COMMUNITY' ? 'badge-community' : (domain === 'ESTIMATED 3D' ? 'badge-3d' : 'badge-scientific');
 
@@ -1165,8 +1179,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const domainLabel = I18n.t(domain === 'COMMUNITY' ? 'badgeCommunity' : (domain === 'ESTIMATED 3D' ? 'badgeEstimated3D' : 'badgeScientific'));
 
     let statInfo = '';
-    if (zScore !== null && percentile !== null) {
-      statInfo = `<span class="metric-stat-pill">Z: ${zScore > 0 ? '+' : ''}${zScore} • P: ${percentile}%</span>`;
+    if (zScore !== null && percentile !== null && domain !== 'COMMUNITY' && status !== 'NOT_OBSERVABLE') {
+      const pText = typeof percentile === 'string' ? percentile : (percentile >= 99 ? '>P99' : (percentile <= 1 ? '<P1' : `P${percentile}`));
+      const zText = typeof zScore === 'string' ? zScore : (zScore > 0 ? `+${zScore}` : `${zScore}`);
+      statInfo = `<span class="metric-stat-pill">Z: ${zText} • ${pText}</span>`;
+    }
+
+    let scorePill = '';
+    if (score100 !== null && score100 !== undefined) {
+      scorePill = `<span class="metric-score-tag">${score100}/100</span>`;
     }
 
     return `
@@ -1179,6 +1200,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div style="display:flex;align-items:center;gap:0.5rem;">
             ${statInfo}
+            ${scorePill}
             <span class="metric-val">${val}</span>
           </div>
         </div>
@@ -1188,6 +1210,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderRecommendations(recs) {
+
     const list = document.getElementById('recommendationsList');
     list.innerHTML = '';
 

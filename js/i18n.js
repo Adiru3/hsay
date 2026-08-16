@@ -78,20 +78,29 @@ class I18n {
       relNotObserved: "Not Observable",
 
       // 3 Independent Models
-      heroScientificTitle: "Scientific Facial Attractiveness",
-      heroScientificDesc: "Holistic evolutionary biology & facial morphometry model",
-      heroSexualTitle: "Facial Sexual Attractiveness",
-      heroSexualDesc: "Secondary sexual dimorphism, vitality & reproductive cues",
+      heroScientificTitle: "Perceived Facial Attractiveness",
+      heroScientificSubtitle: "Research-Informed Model",
+      heroScientificDesc: "Equal-weight multi-domain aggregation (Langlois, Rhodes, Stephen, Cunningham)",
+      heroSexualTitle: "Perceived Facial Sexual Attractiveness",
+      heroSexualSubtitle: "Research-Informed Model",
+      heroSexualDesc: "Equal-weight multi-domain aggregation (Dimorphism, Vitality, Youthfulness, Jaw)",
       heroPslTitle: "PSL Community Rating",
+      heroPslSubtitle: "Community Metric",
       heroPslDesc: "Looksmax community standard scale (1.0 – 10.0)",
+
+      equalWeightBanner: "6 predefined domains · equal-weight aggregation",
 
       scoreOutOf100: "out of 100",
       scoreOutOf10: "out of 10",
-      percentilePrefix: "Population Percentile:",
-      topPercentile: "Top",
-      zScoreLabel: "Z-Score",
-      confidenceInterval: "95% Confidence Interval",
-      confidenceLabel: "Confidence",
+      morphPercentileLabel: "Predicted human-rating percentile:",
+      dimorphPercentileLabel: "Predicted sexual attractiveness percentile:",
+      communityPercentileLabel: "Community percentile:",
+      predictionUncertaintyLabel: "Prediction uncertainty:",
+      modelConfidenceLabel: "Model confidence:",
+
+      badgeEmpirical: "RESEARCH-INFORMED MODEL",
+      badgeDimorphism: "RESEARCH-INFORMED MODEL",
+      badgeCommunity: "COMMUNITY METRIC",
 
       // Potential Card
       potentialCardTitle: "Hypothetical Appearance Optimization Potential",
@@ -102,7 +111,7 @@ class I18n {
       potentialGrowthPts: "pts growth",
 
       // Reserves
-      resSkin: "🧪 Skin & Carotenoids:",
+      resSkin: "🧪 Skin & Soft-Tissue:",
       resPeri: "👁️ Periorbital Tone:",
       resSym: "⚖️ Symmetry (FA):",
       resJaw: "💪 Jaw & Posture:",
@@ -110,19 +119,19 @@ class I18n {
       resMewing: "👅 Mewing & E-Line:",
 
       // Matrix & Structure
-      matrixHeaderTitle: "Scientific Weight Matrix (DeepScan Composite)",
-      matrixDimorphLabel: "1. Sexual Dimorphism & Hormonal Cues (35%)",
-      matrixAnthroLabel: "2. Craniofacial Anthropometry & Proportions (30%)",
-      matrixSkinLabel: "3. Facial Adiposity & Skin Quality (20%)",
-      matrixSymLabel: "4. Fluctuating Symmetry (15%)",
+      matrixHeaderTitle: "Predefined Multi-Domain Aggregation (DeepScan)",
+      matrixDimorphLabel: "1. Secondary Sexual Dimorphism (16.7%)",
+      matrixAnthroLabel: "2. Craniofacial & Sagittal Architecture (16.7%)",
+      matrixSkinLabel: "3. Skin & Soft-Tissue Appearance (16.7%)",
+      matrixSymLabel: "4. Fluctuating Symmetry (16.7%)",
 
       radarAttractivenessTitle: "Facial Harmony & Proportions Radar",
       radarDimorphTitle: "Morphology & Cephalometrics Radar",
       activeModuleStructure: "Active Module Structure",
-      academicPercentilesDesc: "Academic Z-Scores and population percentiles calculated across all biometric dimensions:",
+      academicPercentilesDesc: "Anthropometric Z-Scores and population percentiles calculated across validated parameters:",
 
       // Sections & Module Cards
-      secCraniofacial: "Craniofacial Proportions & Base",
+      secCraniofacial: "Craniofacial Anthropometry & Proportions",
       secPeriorbital: "Periorbital Complex & Eyes",
       secBrows: "Brows & Brow Ridge",
       secNose: "Nasal Morphology",
@@ -133,16 +142,16 @@ class I18n {
       secHairline: "Hairline & Forehead",
       secSymmetry: "Bilateral Symmetry & Coaxiality",
       secDimorphism: "Sexual Dimorphism & Masculinity",
-      secYouthfulness: "Youthfulness & Perceived Age",
-      secSkinQuality: "Skin Quality & Microrelief",
-      secSoftTissue: "Soft Tissue & Facial Adiposity",
+      secYouthfulness: "Visual Youthfulness (Perceived)",
+      secSkinQuality: "Skin & Soft-Tissue Appearance",
+      secSoftTissue: "Soft Tissue & Facial Contour",
       secHarmony: "Holistic Feature Integration & Harmony",
-      sec3DDeepscan: "3D DeepScan Monocular Morphology (Estimated)",
+      sec3DDeepscan: "Monocular 3D Spatial Proxies (Estimated)",
 
       // Metric Names
       metricFwhr: "fWHR (Facial Width-to-Height)",
       metricMidface: "Midface Compactness",
-      metricThirds: "Facial Thirds (Tr-G : G-Sn : Sn-Me)",
+      metricThirds: "Facial Thirds (Upper : Mid : Lower)",
       metricFifths: "Facial Fifths (5 Horizontal)",
       metricJawCheek: "Bigonial / Bizygomatic Ratio",
       metricPhiltrumChin: "Philtrum / Chin Ratio",
@@ -152,7 +161,7 @@ class I18n {
       metricPalpebral: "Palpebral Aspect Ratio",
       metricIntercanthal: "Intercanthal Index (1:1)",
       metricOrbitalComp: "Orbital Compactness",
-      metricHunterEyes: "Hunter Eyes Index",
+      metricHunterEyes: "Hunter Eyes Index (Community)",
       metricBrowThick: "Brow Thickness",
       metricBrowCurv: "Brow Curvature & Arch",
       metricNasalWidth: "Nasal Width Ratio",
@@ -164,13 +173,13 @@ class I18n {
       metricMandibularTaper: "Mandibular Taper Angle",
       metricChinProj: "Chin Anterior Projection",
       metricMasculinity: "Masculinity Index",
-      metricYouthfulness: "Biological Youthfulness",
-      metricCheekHollow: "Cheek Hollow (Adiposity)",
-      metricUniformity: "CIELAB Color Uniformity",
-      metricMicrorelief: "Microrelief Smoothness",
+      metricYouthfulness: "Visual Youthfulness (Perceived)",
+      metricCheekHollow: "Cheek Hollow (Malar Contrast)",
+      metricUniformity: "CIELAB Color Homogeneity",
+      metricMicrorelief: "Microrelief Variance",
       metricCarotenoid: "Carotenoid Undertone (b*)",
       metricDarkCircles: "Dark Circles (ΔL*)",
-      metricFA: "Fluctuating Asymmetry (FA)",
+      metricFA: "Bilateral Symmetry (FA)",
       metricMidlineDev: "Midline Coaxiality Deviation",
       metricTextureSym: "Texture Symmetry Index",
       metricConvexity: "Facial Convexity (G-Sn-Pog)",
@@ -179,15 +188,14 @@ class I18n {
       metricOrbitalVec: "Orbital Vector (Maxillary Support)",
       metricNasolabial: "Nasolabial Angle (Cm-Sn-Ls)",
 
-      refTargetLabel: "Reference Target:",
+      refTargetLabel: "Reference distribution:",
 
       // Status Badges
       badgeMeasured: "MEASURED",
       badgeEstimated: "ESTIMATED",
       badgeNotObservable: "NOT OBSERVABLE",
       badgeScientific: "SCIENTIFIC",
-      badgeCommunity: "COMMUNITY METRIC",
-      badgeEstimated3D: "ESTIMATED 3D",
+      badgeEstimated3D: "ESTIMATED 3D PROXY",
 
       // Recommendations
       recsHeader: "Personalized Scientific Optimization Protocols",
@@ -198,8 +206,11 @@ class I18n {
 
       // Export / PDF
       exportPdfBtn: "Print / Export PDF",
-      footerEngineInfo: "Powered by MediaPipe 3D Mesh + OpenCV CIELAB + Statistical Population Norms",
-      footerDisclaimer: "Disclaimer: This software is an anthropometric and aesthetic analysis tool for educational, research, and personal optimization purposes. Monocular 3D estimations are mathematical approximations and do not constitute clinical cephalometric radiography.",
+      footerEngineInfo: "Powered by MediaPipe 3D Mesh + OpenCV CIELAB + Statistical Anthropometric Reference Norms",
+      footerDisclaimer: "Methodological Note: Equal domain weights are a predefined methodological baseline and are not interpreted as empirically estimated causal or predictive effect sizes. Disclaimer: This software is an anthropometric and aesthetic analysis tool for educational, research, and personal optimization purposes. Monocular 3D estimations are mathematical approximations and do not constitute clinical cephalometric radiography.",
+
+      // FAQ
+      faqSectionTitle: "Scientific Facial Morphometry & FAQ Guide",
 
       // Webcam Modal
       webcamModalTitle: "Take Portrait Photo",
@@ -207,8 +218,8 @@ class I18n {
       webcamCancelBtn: "Cancel",
 
       // Welcome Card
-      welcomeTitle: "100% Scientific Coverage of Facial Attractiveness",
-      welcomeDesc: "Advanced multi-stage pipeline combining 2D craniofacial anthropometry, 90° sagittal cephalometrics, OpenCV CIELAB dermatological analysis, monocular 3D reconstruction, and population statistics with 3 independent evaluation models."
+      welcomeTitle: "Research-Informed Multi-Domain Facial Analysis",
+      welcomeDesc: "Advanced multi-stage pipeline combining 2D craniofacial anthropometry, 90° sagittal cephalometrics, OpenCV CIELAB dermatological analysis, and equal-weight aggregation across 6 predefined morphological and perceptual domains."
     },
 
     ru: {
@@ -283,20 +294,29 @@ class I18n {
       relNotObserved: "Не поддаются наблюдению",
 
       // 3 Independent Models
-      heroScientificTitle: "Научная привлекательность лица",
-      heroScientificDesc: "Холистическая модель эволюционной биологии и краниофациальной морфометрии",
-      heroSexualTitle: "Сексуальная привлекательность",
-      heroSexualDesc: "Вторичный половой диморфизм, витальность и репродуктивные маркеры",
+      heroScientificTitle: "Воспринимаемая привлекательность лица",
+      heroScientificSubtitle: "Исследовательская модель",
+      heroScientificDesc: "Равновесная агрегация 6 предопределенных доменов (Langlois, Rhodes, Stephen)",
+      heroSexualTitle: "Воспринимаемая сексуальная привлекательность",
+      heroSexualSubtitle: "Исследовательская модель",
+      heroSexualDesc: "Равновесная агрегация 6 доменов (Диморфизм, Витальность, Молодость, Челюсть)",
       heroPslTitle: "PSL Community Rating",
+      heroPslSubtitle: "Метрика сообщества",
       heroPslDesc: "Шкала сообщества Looksmax (1.0 – 10.0)",
+
+      equalWeightBanner: "6 предопределенных доменов · равновесная агрегация",
 
       scoreOutOf100: "из 100",
       scoreOutOf10: "из 10",
-      percentilePrefix: "Популяционный перцентиль:",
-      topPercentile: "Топ",
-      zScoreLabel: "Z-Score",
-      confidenceInterval: "95% Доверительный интервал",
-      confidenceLabel: "Уверенность",
+      morphPercentileLabel: "Перцентиль восприятия людьми:",
+      dimorphPercentileLabel: "Перцентиль сексуальной привлекательности:",
+      communityPercentileLabel: "Перцентиль сообщества Looksmax:",
+      predictionUncertaintyLabel: "Погрешность оценки:",
+      modelConfidenceLabel: "Уверенность модели:",
+
+      badgeEmpirical: "ИССЛЕДОВАТЕЛЬСКАЯ МОДЕЛЬ",
+      badgeDimorphism: "ИССЛЕДОВАТЕЛЬСКАЯ МОДЕЛЬ",
+      badgeCommunity: "COMMUNITY METRIC",
 
       // Potential Card
       potentialCardTitle: "Оценка гипотетического потенциала оптимизации",
@@ -307,7 +327,7 @@ class I18n {
       potentialGrowthPts: "pts роста",
 
       // Reserves
-      resSkin: "🧪 Кожа & Каротиноиды:",
+      resSkin: "🧪 Кожа & Мягкие ткани:",
       resPeri: "👁️ Тонус век (Hunter Eyes):",
       resSym: "⚖️ Симметрия (FA) & Жевание:",
       resJaw: "💪 Массетеры & Осанка:",
@@ -315,19 +335,19 @@ class I18n {
       resMewing: "👅 Mewing & Линия E-Line:",
 
       // Matrix & Structure
-      matrixHeaderTitle: "Итоговая научная весовая матрица (DeepScan)",
-      matrixDimorphLabel: "1. Половой диморфизм & Гормональный статус (35%)",
-      matrixAnthroLabel: "2. Краниофациальная антропометрия & Пропорции (30%)",
-      matrixSkinLabel: "3. Лицевой жир & Качество кожи / Здоровье (20%)",
-      matrixSymLabel: "4. Флуктуирующая симметрия (15%)",
+      matrixHeaderTitle: "Равновесная междоменная агрегация (DeepScan)",
+      matrixDimorphLabel: "1. Вторичный половой диморфизм (16.7%)",
+      matrixAnthroLabel: "2. Краниофациальная архитектура (16.7%)",
+      matrixSkinLabel: "3. Внешний вид кожи и мягких тканей (16.7%)",
+      matrixSymLabel: "4. Флуктуирующая симметрия (16.7%)",
 
       radarAttractivenessTitle: "Радар гармонии и пропорций лица",
       radarDimorphTitle: "Радар морфологии и цефалометрии",
       activeModuleStructure: "Структура активного модуля",
-      academicPercentilesDesc: "Академический Z-Score и популяционный перцентиль по всем биометрическим направлениям:",
+      academicPercentilesDesc: "Антропометрический Z-Score и популяционный перцентиль по валидированным параметрам:",
 
       // Sections & Module Cards
-      secCraniofacial: "Краниофациальные пропорции и база",
+      secCraniofacial: "Краниофациальная антропометрия и пропорции",
       secPeriorbital: "Периорбитальный комплекс и глаза",
       secBrows: "Брови и надбровные дуги",
       secNose: "Морфология носа",
@@ -338,16 +358,16 @@ class I18n {
       secHairline: "Линия роста волос и лоб",
       secSymmetry: "Билатеральная симметрия и соосность",
       secDimorphism: "Половой диморфизм и маскулинность",
-      secYouthfulness: "Молодость и воспринимаемый возраст",
-      secSkinQuality: "Качество кожи и микрорельеф",
-      secSoftTissue: "Мягкие ткани и лицевой жир",
+      secYouthfulness: "Визуальная молодость лица",
+      secSkinQuality: "Внешний вид кожи и мягких тканей",
+      secSoftTissue: "Мягкие ткани и контур лица",
       secHarmony: "Холистическая интеграция черт и гармония",
-      sec3DDeepscan: "3D DeepScan монокулярная морфология (Оценка)",
+      sec3DDeepscan: "Монокулярные 3D пространственные прокси (Оценка)",
 
       // Metric Names
       metricFwhr: "fWHR (Ширина к высоте средней зоны)",
       metricMidface: "Компактность средней зоны",
-      metricThirds: "Правило третей лица",
+      metricThirds: "Трети лица (Верхняя : Средняя : Нижняя)",
       metricFifths: "Правило пятых долей",
       metricJawCheek: "Челюсть / Скулы (Bigonial)",
       metricPhiltrumChin: "Фильтрум / Подбородок",
@@ -357,7 +377,7 @@ class I18n {
       metricPalpebral: "Индекс глазной щели (Palpebral)",
       metricIntercanthal: "Межглазной индекс (1:1)",
       metricOrbitalComp: "Компактность глазницы",
-      metricHunterEyes: "Hunter Eyes индекс",
+      metricHunterEyes: "Индекс Hunter Eyes (Сообщество)",
       metricBrowThick: "Толщина бровей",
       metricBrowCurv: "Изгиб и арка бровей",
       metricNasalWidth: "Ширина основания носа",
@@ -369,13 +389,13 @@ class I18n {
       metricMandibularTaper: "Угол конуса челюсти",
       metricChinProj: "Проекция подбородка вперед",
       metricMasculinity: "Индекс маскулинности",
-      metricYouthfulness: "Биологическая молодость",
-      metricCheekHollow: "Cheek Hollow (Лицевой жир)",
+      metricYouthfulness: "Визуальная молодость лица",
+      metricCheekHollow: "Cheek Hollow (Скуловой контраст)",
       metricUniformity: "CIELAB Однородность тона",
-      metricMicrorelief: "Микрорельеф и гладкость пор",
+      metricMicrorelief: "Дисперсия микротекстуры",
       metricCarotenoid: "Каротиноидный тон (b*)",
       metricDarkCircles: "Темные круги (ΔL*)",
-      metricFA: "Флуктуирующая асимметрия (FA)",
+      metricFA: "Билатеральная симметрия (FA)",
       metricMidlineDev: "Отклонение срединной линии",
       metricTextureSym: "Индекс симметрии текстуры",
       metricConvexity: "Выпуклость лица (G-Sn-Pog)",
@@ -384,15 +404,14 @@ class I18n {
       metricOrbitalVec: "Орбитальный вектор (Опора максиллы)",
       metricNasolabial: "Носогубный угол (Cm-Sn-Ls)",
 
-      refTargetLabel: "Идеальный диапазон:",
+      refTargetLabel: "Референсный диапазон:",
 
       // Status Badges
       badgeMeasured: "ИЗМЕРЕНО",
       badgeEstimated: "ОЦЕНОЧНО",
       badgeNotObservable: "НЕ НАБЛЮДАЕМО",
       badgeScientific: "НАУЧНЫЙ",
-      badgeCommunity: "COMMUNITY METRIC",
-      badgeEstimated3D: "ОЦЕНКА 3D",
+      badgeEstimated3D: "3D ПРОКСИ (ОЦЕНКА)",
 
       // Recommendations
       recsHeader: "Персонализированные научные рекомендации и протоколы",
@@ -403,8 +422,11 @@ class I18n {
 
       // Export / PDF
       exportPdfBtn: "Печать / Экспорт PDF",
-      footerEngineInfo: "Работает на базе MediaPipe 3D Mesh + OpenCV CIELAB + Статистических популяционных норм",
-      footerDisclaimer: "Предупреждение: Данная система является антропометрическим и эстетическим инструментом для образовательных и исследовательских целей. Монокулярная 3D-оценка представляет собой математическую аппроксимацию и не заменяет клиническую цефалометрическую телерентгенографию.",
+      footerEngineInfo: "Работает на базе MediaPipe 3D Mesh + OpenCV CIELAB + Статистических антропометрических референсных норм",
+      footerDisclaimer: "Методологическое примечание: Равные веса доменов являются заранее определённым методологическим baseline и не интерпретируются как эмпирически установленные размеры эффектов или причинные вклады признаков в привлекательность. Предупреждение: Данная система является антропометрическим и эстетическим инструментом для образовательных и исследовательских целей. Монокулярная 3D-оценка представляет собой математическую аппроксимацию и не заменяет клиническую цефалометрическую телерентгенографию.",
+
+      // FAQ
+      faqSectionTitle: "Часто задаваемые вопросы и стандарты морфометрии",
 
       // Webcam Modal
       webcamModalTitle: "Сделать снимок",
@@ -412,8 +434,8 @@ class I18n {
       webcamCancelBtn: "Отмена",
 
       // Welcome Card
-      welcomeTitle: "100% Научное покрытие привлекательности и морфологии лица",
-      welcomeDesc: "Многоступенчатый вычислительный конвейер, объединяющий 2D краниофациальную антропометрию, 90° цефалометрию, OpenCV CIELAB дерматологический анализ, монокулярную 3D-реконструкцию и популяционную статистику с 3 независимыми моделями оценки."
+      welcomeTitle: "Исследовательская многодоменная модель анализа лица",
+      welcomeDesc: "Многоступенчатый вычислительный конвейер, объединяющий 2D краниофациальную антропометрию, 90° цефалометрию, OpenCV CIELAB дерматологический анализ и равновесную агрегацию 6 предопределенных морфологических и перцептивных доменов."
     }
   };
 

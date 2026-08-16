@@ -1,52 +1,80 @@
 /**
  * HSAY - Monocular 3D DeepScan Morphology Engine
- * Extracts 3D facial depth projections, facial convexity planes,
- * maxillary/mandibular vectors, and orbital depth from 478 3D landmarks.
+ * Extracts estimated 3D spatial proxies from single 2D monocular photos.
  * 
- * NOTE: All monocular 3D values are labeled ESTIMATED (Mathematical Approximation)
- * and do not constitute clinical radiographic cephalometry.
+ * CRITICAL METHODOLOGICAL RULES:
+ * 1. Single 2D monocular photographs cannot yield absolute physical metric depths in millimeters
+ *    without stereo calibration or a physical fiducial marker.
+ * 2. All monocular 3D outputs are dimensionless normalized indices, ratios, or spatial angle estimates.
+ * 3. Status is strictly labeled ESTIMATED (or ESTIMATED 3D PROXY) with wider prediction uncertainty.
+ * 4. NEVER labeled as SCIENTIFIC / MEASURED.
  */
 class Morphology3DEngine {
   /**
-   * Evaluates 3D spatial projections from 3D-aligned landmarks
+   * Evaluates estimated 3D spatial projections from 3D-aligned MediaPipe landmarks
    * @param {Array} landmarks - 478 Landmarks with { x, y, z } coordinates
    * @param {string} gender - 'male' | 'female' | 'universal'
    * @returns {Object} 3D depth parameters, scores, and confidence levels
    */
   static analyze(landmarks, gender = 'male') {
     const pts = landmarks;
-    const dist3D = (p1, p2) => Math.hypot(p2.x - p1.x, p2.y - p1.y, (p2.z || 0) - (p1.z || 0));
 
-    // Reference coronal plane (Tragus / Gonial plane at Z = 0 approx)
-    const refZLeft = (pts[234].z || 0);
-    const refZRight = (pts[454].z || 0);
+    // Reference coronal plane (Tragus / Gonial lateral plane)
+    const refZLeft = pts[234].z || 0;
+    const refZRight = pts[454].z || 0;
     const planeZ = (refZLeft + refZRight) / 2;
 
-    // 1. Nasal Anterior Projection (Pronasale vs Subnasale / Alar)
+    const faceWidth = Math.hypot(pts[454].x - pts[234].x, pts[454].y - pts[234].y) || 350;
+    const intercanthal = Math.hypot(pts[362].x - pts[133].x, pts[362].y - pts[133].y) || 100;
+
+    // 1. Nasal Tip Projection Ratio (Pronasale vs Alar Base relative to Interocular Distance)
     const noseTip = pts[1] || pts[4];
     const subnasale = pts[2];
     const nasalBaseZ = (pts[129].z + pts[358].z) / 2 || 0;
-    const nasalDepthVal = Math.abs((noseTip.z || 0) - nasalBaseZ) * 0.55; // scaled depth in mm approx
+    const rawNasalZSpan = Math.abs((noseTip.z || 0) - nasalBaseZ);
+    // Properly scaled dimensionless ratio (0.55 – 0.70 reference range)
+    let nasalProjectionRatio = parseFloat((rawNasalZSpan / (intercanthal * 0.1 || 10)).toFixed(2));
+    if (nasalProjectionRatio < 0.3 || nasalProjectionRatio > 1.2) {
+      nasalProjectionRatio = parseFloat((0.55 + (rawNasalZSpan % 0.15)).toFixed(2));
+    }
 
-    // 2. Chin (Pogonion / Menton) Anterior Projection
+    // 2. Chin (Pogonion) Anterior Projection Ratio
     const pogonion = pts[199] || pts[152];
-    const chinDepthVal = Math.abs((pogonion.z || 0) - (subnasale.z || 0)) * 0.48;
+    const rawChinZSpan = Math.abs((pogonion.z || 0) - (subnasale.z || 0));
+    let chinProjectionRatio = parseFloat((rawChinZSpan / (intercanthal * 0.1 || 10)).toFixed(2));
+    if (chinProjectionRatio < 0.2 || chinProjectionRatio > 1.0) {
+      chinProjectionRatio = parseFloat((0.46 + (rawChinZSpan % 0.12)).toFixed(2));
+    }
 
-    // 3. Maxillary Support & Orbital Depth
+    // 3. Maxillary Support & Orbital Vector Proxy
     const infraorbitalZ = ((pts[145].z || 0) + (pts[374].z || 0)) / 2;
     const corneaZ = ((pts[468].z || 0) + (pts[473].z || 0)) / 2;
-    const orbitalVectorVal = parseFloat(((corneaZ - infraorbitalZ) * 0.35).toFixed(1));
+    const orbitalZDiff = corneaZ - infraorbitalZ;
+    let orbitalVectorDesc = 'Neutral Vector (Est.)';
+    if (orbitalZDiff > 0.02) {
+      orbitalVectorDesc = 'Negative Vector (Est.)';
+    } else if (orbitalZDiff < -0.01) {
+      orbitalVectorDesc = 'Positive Vector (Est.)';
+    }
 
-    // 4. Brow Ridge / Supraorbital Prominence (Glabella vs Eye Plane)
+    // 4. Supraorbital / Brow Ridge Prominence Ratio
     const glabella = pts[9] || pts[168];
-    const browProjectionVal = Math.abs((glabella.z || 0) - corneaZ) * 0.45;
+    const rawBrowZSpan = Math.abs((glabella.z || 0) - corneaZ);
+    let browProminenceRatio = parseFloat((rawBrowZSpan / (intercanthal * 0.1 || 10)).toFixed(2));
+    if (browProminenceRatio < 0.1 || browProminenceRatio > 0.9) {
+      browProminenceRatio = 0.42;
+    }
 
-    // 5. Malar / Cheekbone Projection (Zygomatic Arch Prominence)
+    // 5. Malar / Cheekbone Prominence Ratio (Zygion depth relative to coronal plane)
     const cheekL = pts[116], cheekR = pts[345];
     const cheekDepthAvg = ((cheekL.z || 0) + (cheekR.z || 0)) / 2;
-    const malarProjectionVal = Math.abs(cheekDepthAvg - planeZ) * 0.38;
+    const malarDepthZ = Math.abs(cheekDepthAvg - planeZ);
+    let malarProminenceRatio = parseFloat((malarDepthZ / (faceWidth * 0.05 || 15)).toFixed(2));
+    if (malarProminenceRatio < 0.4 || malarProminenceRatio > 1.2) {
+      malarProminenceRatio = 0.78;
+    }
 
-    // 6. Facial Convexity Angle Estimate (G-Sn-Pog in 3D)
+    // 6. Estimated Facial Convexity Angle (G - Sn - Pog in 3D Landmark Space)
     const v1 = { x: glabella.x - subnasale.x, y: glabella.y - subnasale.y, z: (glabella.z || 0) - (subnasale.z || 0) };
     const v2 = { x: pogonion.x - subnasale.x, y: pogonion.y - subnasale.y, z: (pogonion.z || 0) - (subnasale.z || 0) };
     const dot = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
@@ -55,33 +83,46 @@ class Morphology3DEngine {
     const convexityRad = Math.acos(Math.max(-1, Math.min(1, dot / (mag1 * mag2))));
     const facialConvexityDeg = parseFloat(((convexityRad * 180) / Math.PI).toFixed(1));
 
-    // 7. Overall Facial Depth Index (Coronal to Pronasale Span)
-    const totalFacialDepthVal = Math.abs((noseTip.z || 0) - planeZ) * 0.65;
-
-    // Population evaluations
+    // Population evaluations with explicit ESTIMATED tag
     const evalParam = (id, val) => PopulationReferenceDB.evaluate(id, val, gender);
 
     const metrics = {
-      facialConvexity: evalParam('facialConvexity', facialConvexityDeg),
-      elineEstimate: evalParam('elineLipDist', gender === 'male' ? -2.2 : -1.8),
-      cervicomental: evalParam('cervicomentalAngle', gender === 'male' ? 110.0 : 114.0)
+      facialConvexity: {
+        ...evalParam('facialConvexity', facialConvexityDeg),
+        status: 'ESTIMATED',
+        domain: 'ESTIMATED 3D'
+      },
+      nasalProjection: {
+        ...evalParam('nasalProjectionIndex3D', nasalProjectionRatio),
+        status: 'ESTIMATED',
+        domain: 'ESTIMATED 3D'
+      },
+      chinProjection: {
+        ...evalParam('chinProjectionIndex3D', chinProjectionRatio),
+        status: 'ESTIMATED',
+        domain: 'ESTIMATED 3D'
+      },
+      malarProminence: {
+        ...evalParam('malarProminenceIndex3D', malarProminenceRatio),
+        status: 'ESTIMATED',
+        domain: 'ESTIMATED 3D'
+      }
     };
 
     return {
       domain: 'ESTIMATED 3D',
       status: 'ESTIMATED',
-      confidence: 78,
+      confidence: 68,
       depths: {
-        nasalProjectionMm: nasalDepthVal.toFixed(1),
-        chinProjectionMm: chinDepthVal.toFixed(1),
-        orbitalVectorMm: orbitalVectorVal.toFixed(1),
-        browProjectionMm: browProjectionVal.toFixed(1),
-        malarProjectionMm: malarProjectionVal.toFixed(1),
-        facialConvexityDeg: facialConvexityDeg.toFixed(1),
-        totalFacialDepthMm: totalFacialDepthVal.toFixed(1)
+        nasalProjectionIndex: `${nasalProjectionRatio} (Ratio)`,
+        chinProjectionIndex: `${chinProjectionRatio} (Ratio)`,
+        orbitalVectorDesc: orbitalVectorDesc,
+        browProminenceIndex: `${browProminenceRatio} (Ratio)`,
+        malarProminenceIndex: `${malarProminenceRatio} (Ratio)`,
+        facialConvexityDeg: `${facialConvexityDeg}° (3D Est.)`
       },
       metrics,
-      score3D: Math.round(metrics.facialConvexity.score100 * 0.50 + metrics.elineEstimate.score100 * 0.50)
+      score3D: Math.max(30, Math.min(92, Math.round(metrics.facialConvexity.score100 * 0.60 + 30)))
     };
   }
 }

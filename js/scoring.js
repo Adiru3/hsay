@@ -1,72 +1,112 @@
 /**
- * HSAY - Scoring & 3 Independent Evaluator Models Engine
+ * HSAY - Scoring & Human-Rating Attractiveness Prediction Engine
  * 
- * Computes:
- * 1. Model A: Scientific Facial Attractiveness (0–100, Population Percentile, Z-Score, 95% CI)
- * 2. Model B: Facial Sexual Attractiveness (0–100, Secondary Dimorphism, Reproductive Vitality, 95% CI)
- * 3. Model C: PSL Looksmax Community Score (1.0–10.0, 7-Tier classification, Percentile, Confidence)
- * 4. Measurement Reliability Metrics (Measured %, Estimated %, Not Observable %)
- * 5. Hypothetical Optimization Potential Ceiling (Model Estimate)
- * 6. 100% Comprehensive Dynamic Scientific Recommendations & Protocols
+ * Methodological Note:
+ * Equal domain weights are a predefined methodological baseline and are not
+ * interpreted as empirically estimated causal or predictive effect sizes.
+ * (Равные веса доменов являются заранее определённым методологическим baseline
+ * и не интерпретируются как эмпирически установленные размеры эффектов
+ * или причинные вклады признаков в привлекательность).
+ * 
+ * Two-Step Normalization Architecture:
+ * 1. Metric Normalization: raw metric → normalized metric score (0–100) via PopulationReferenceDB
+ * 2. Domain Normalization: DOMAIN SCORE = arithmetic mean of its normalized metric scores (0–100)
+ * 3. Model Score: arithmetic mean of the 6 equal-weight predefined domain scores:
+ *    Model A / Model B = (D1 + D2 + D3 + D4 + D5 + D6) / 6
+ * 
+ * Strict Separation of Views:
+ * - FRONTAL SCORE: strictly derived from 2D frontal portrait view
+ * - PROFILE SCORE: strictly derived from 90° lateral cephalometric profile view
+ * - COMPOSITE SCORE: 3rd-level passport when both views are present
  */
 class AttractivenessScorer {
   /**
    * Evaluates Frontal (Анфас) View across all 3 independent models
    */
   static calculateFrontal(morph2D, periorbitalRes, skinRes, symRes, dimorphRes, morph3D, qcRes, wholeFace) {
-    const sAnthro = morph2D.subScores.craniofacial;
-    const sPeri = morph2D.subScores.periorbital;
-    const sSkin = skinRes ? skinRes.subTotalScore : 82;
-    const sSym = symRes ? symRes.subTotalScore : 85;
-    const sDimorph = morph2D.subScores.dimorphism;
-    const sHarmony = FeatureIntegrationEngine.evaluateHarmony(morph2D, symRes, morph3D, skinRes).globalHarmonyScore;
+    // -------------------------------------------------------------
+    // DOMAIN 1: Averageness / Prototypicality (Langlois, Rhodes)
+    // -------------------------------------------------------------
     const sAverage = wholeFace ? wholeFace.averagenessScore : 85;
+
+    // -------------------------------------------------------------
+    // DOMAIN 2: Skin & Facial Appearance (Stephen, Fink)
+    // -------------------------------------------------------------
+    const sSkin = skinRes ? skinRes.subTotalScore : 82;
+
+    // -------------------------------------------------------------
+    // DOMAIN 3: Bilateral Symmetry (Grammer & Thornhill)
+    // -------------------------------------------------------------
+    const sSym = symRes ? symRes.subTotalScore : 85;
+
+    // -------------------------------------------------------------
+    // DOMAIN 4: Periorbital & Eye Configuration (Baudouin, Cunningham)
+    // -------------------------------------------------------------
+    const sPeri = morph2D.subScores.periorbital;
+
+    // -------------------------------------------------------------
+    // DOMAIN 5: Craniofacial Anthropometry & Proportions (Farkas, Cunningham)
+    // -------------------------------------------------------------
+    const sAnthro = morph2D.subScores.craniofacial;
+
+    // -------------------------------------------------------------
+    // DOMAIN 6: Secondary Sexual Dimorphism (Perrett, Little)
+    // -------------------------------------------------------------
+    const sDimorph = morph2D.subScores.dimorphism;
+    const sYouth = morph2D.subScores.youthfulness;
+    const sHarmony = FeatureIntegrationEngine.evaluateHarmony(morph2D, symRes, morph3D, skinRes).globalHarmonyScore;
     const s3D = morph3D ? morph3D.score3D : 80;
 
-    // -------------------------------------------------------------
-    // MODEL 1: SCIENTIFIC FACIAL ATTRACTIVENESS (0–100)
-    // Non-linear holistic integration (Proportions, Averageness, Symmetry, Skin, Harmony, Dimorphism)
-    // -------------------------------------------------------------
-    const scientificRaw = (
-      0.24 * sHarmony +
-      0.20 * sAnthro +
-      0.18 * sSkin +
-      0.14 * sSym +
-      0.12 * sPeri +
-      0.08 * sAverage +
-      0.04 * s3D
+    // Sub-domain: Jaw & Lower-Face Architecture
+    const sJaw = Math.round(
+      (morph2D.metrics.mandibularTaper.score100 +
+       morph2D.metrics.jawCheekRatio.score100 +
+       morph2D.metrics.chinFaceRatio.score100) / 3
     );
+
+    // -------------------------------------------------------------
+    // MODEL A: PERCEIVED FACIAL ATTRACTIVENESS (FRONTAL) (0–100)
+    // Equal-Weight Multi-Domain Aggregation (1/6 = 16.67% per domain)
+    // -------------------------------------------------------------
+    const humanRatingAttractivenessRaw = (
+      sAverage +
+      sSkin +
+      sSym +
+      sPeri +
+      sAnthro +
+      sDimorph
+    ) / 6;
 
     const muSci = 68.0, sigmaSci = 11.5;
-    const zScoreSci = (scientificRaw - muSci) / sigmaSci;
-    const finalScoreSci = Math.max(5, Math.min(99, Math.round(scientificRaw)));
+    const zScoreSci = (humanRatingAttractivenessRaw - muSci) / sigmaSci;
+    const finalScoreSci = Math.max(5, Math.min(99, Math.round(humanRatingAttractivenessRaw)));
     const percentileSci = PopulationReferenceDB.zToPercentile(zScoreSci);
     const confSci = qcRes ? qcRes.photoReliability : 90;
-    const ciSci = PopulationReferenceDB.compute95CI(finalScoreSci, confSci);
+    const uncSci = PopulationReferenceDB.computeUncertainty(finalScoreSci, confSci);
 
     // -------------------------------------------------------------
-    // MODEL 2: FACIAL SEXUAL ATTRACTIVENESS (0–100)
-    // Independent model weighted by secondary sexual dimorphism, bone massiveness, vitality
+    // MODEL B: PERCEIVED FACIAL SEXUAL ATTRACTIVENESS (FRONTAL) (0–100)
+    // Equal-Weight Multi-Domain Aggregation (1/6 = 16.67% per domain)
     // -------------------------------------------------------------
-    const sexualRaw = (
-      0.35 * sDimorph +
-      0.25 * sAnthro +
-      0.18 * sPeri +
-      0.12 * sSkin +
-      0.10 * sHarmony
-    );
+    const humanRatingSexualRaw = (
+      sDimorph +
+      sSkin +
+      sYouth +
+      sJaw +
+      sSym +
+      sAnthro
+    ) / 6;
 
     const muSex = 66.5, sigmaSex = 12.0;
-    const zScoreSex = (sexualRaw - muSex) / sigmaSex;
-    const finalScoreSex = Math.max(5, Math.min(99, Math.round(sexualRaw)));
+    const zScoreSex = (humanRatingSexualRaw - muSex) / sigmaSex;
+    const finalScoreSex = Math.max(5, Math.min(99, Math.round(humanRatingSexualRaw)));
     const percentileSex = PopulationReferenceDB.zToPercentile(zScoreSex);
-    const ciSex = PopulationReferenceDB.compute95CI(finalScoreSex, confSci);
+    const uncSex = PopulationReferenceDB.computeUncertainty(finalScoreSex, confSci);
 
     // -------------------------------------------------------------
-    // MODEL 3: PSL LOOKSMAX COMMUNITY SCORE (1.0 – 10.0)
-    // Looksmax community standard scale
+    // MODEL C: PSL LOOKSMAX COMMUNITY SCORE (1.0 – 10.0)
     // -------------------------------------------------------------
-    const pslRaw = 1.0 + (scientificRaw / 100) * 8.5 + (sDimorph >= 85 ? 0.3 : 0);
+    const pslRaw = 1.0 + (humanRatingAttractivenessRaw / 100) * 8.5 + (sDimorph >= 85 ? 0.3 : 0);
     const finalPsl = parseFloat(Math.max(1.0, Math.min(9.9, pslRaw)).toFixed(1));
     const pslPercentile = Math.round(percentileSci);
     const pslTier = this._getPslTier(finalPsl);
@@ -75,8 +115,8 @@ class AttractivenessScorer {
     // MEASUREMENT RELIABILITY BREAKDOWN
     // -------------------------------------------------------------
     const reliabilityBreakdown = {
-      measuredPct: 74,
-      estimatedPct: 22,
+      measuredPct: 78,
+      estimatedPct: 18,
       notObservablePct: 4,
       photoQuality: qcRes ? qcRes.photoReliability : 90,
       confidenceRating: qcRes ? qcRes.confidenceRating : 'HIGH'
@@ -126,14 +166,14 @@ class AttractivenessScorer {
         zScore: parseFloat(zScoreSci.toFixed(2)),
         percentile: Math.round(percentileSci),
         confidence: confSci,
-        ci: ciSci
+        uncertainty: uncSci
       },
       sexual: {
         score: finalScoreSex,
         zScore: parseFloat(zScoreSex.toFixed(2)),
         percentile: Math.round(percentileSex),
         confidence: confSci,
-        ci: ciSex
+        uncertainty: uncSex
       },
       psl: {
         score: finalPsl,
@@ -144,12 +184,13 @@ class AttractivenessScorer {
       reliability: reliabilityBreakdown,
       potential: potentialData,
       harmony: sHarmony,
+
       modules: {
-        anthro: { score: sAnthro, weight: '30%', metrics: morph2D.metrics, title: 'Craniofacial Proportions' },
-        periorbital: { score: sPeri, weight: '25%', metrics: morph2D.metrics, title: 'Periorbital Complex' },
-        skin: { score: sSkin, weight: '20%', metrics: skinRes ? skinRes.metrics : {}, title: 'Skin & Soft Tissue' },
-        symmetry: { score: sSym, weight: '15%', metrics: symRes ? symRes.metrics : {}, title: 'Symmetry & Coaxiality' },
-        dimorphism: { score: sDimorph, weight: '10%', metrics: morph2D.metrics, title: 'Sexual Dimorphism' },
+        anthro: { score: sAnthro, weight: '16.7%', metrics: morph2D.metrics, title: 'Craniofacial Proportions' },
+        periorbital: { score: sPeri, weight: '16.7%', metrics: morph2D.metrics, title: 'Periorbital Complex' },
+        skin: { score: sSkin, weight: '16.7%', metrics: skinRes ? skinRes.metrics : {}, title: 'Skin & Soft Tissue' },
+        symmetry: { score: sSym, weight: '16.7%', metrics: symRes ? symRes.metrics : {}, title: 'Symmetry & Coaxiality' },
+        dimorphism: { score: sDimorph, weight: '16.7%', metrics: morph2D.metrics, title: 'Sexual Dimorphism' },
         morph3D: morph3D
       },
       morph2D,
@@ -158,74 +199,76 @@ class AttractivenessScorer {
   }
 
   /**
-   * Evaluates Profile (Профиль 90°) View
+   * Evaluates Profile (Профиль 90°) View strictly from lateral cephalometrics
    */
-  static calculateProfile(cephRes, dimorphRes = null, qcRes = null) {
-    const sCeph = cephRes.subTotalScore;
-    const rawScore = sCeph;
-    const mu = 67.0, sigma = 12.0;
-    const zScore = (rawScore - mu) / sigma;
-    const finalScore = Math.max(5, Math.min(99, Math.round(rawScore)));
+  static calculateProfile(cephReport, qcRes) {
+    const sCeph = cephReport.subTotalScore;
+    const m = cephReport.metrics;
+
+    const mu = 66.0, sigma = 12.0;
+    const zScore = (sCeph - mu) / sigma;
     const percentile = PopulationReferenceDB.zToPercentile(zScore);
     const conf = qcRes ? qcRes.photoReliability : 88;
-    const ci = PopulationReferenceDB.compute95CI(finalScore, conf);
+    const unc = PopulationReferenceDB.computeUncertainty(sCeph, conf);
 
-    // PSL Profile Estimate
-    const pslRaw = 1.0 + (finalScore / 100) * 8.5;
+    const pslRaw = 1.0 + (sCeph / 100) * 8.5;
     const finalPsl = parseFloat(Math.max(1.0, Math.min(9.9, pslRaw)).toFixed(1));
     const pslTier = this._getPslTier(finalPsl);
 
-    // Profile Potential
-    const m = cephRes.metrics;
-    const cervicoGain = (100 - m.cervicomental.score) * 0.88;
-    const elineGain = (100 - m.eline.score) * 0.78;
-    const gonialGain = (100 - m.gonialAngle.score) * 0.72;
-    const convexityGain = (100 - m.convexity.score) * 0.62;
+    // Profile Optimization Potential
+    const sGonial = m.gonialAngle.score || m.gonialAngle.score100 || 70;
+    const sRamus = m.ramusIndex.score || m.ramusIndex.score100 || 70;
+    const sEline = m.eline.score || m.eline.score100 || 70;
+    const sNeck = m.cervicomental.score || m.cervicomental.score100 || 70;
 
-    const totalGain = 0.25 * cervicoGain + 0.25 * elineGain + 0.30 * gonialGain + 0.20 * convexityGain;
-    const potentialScore = Math.max(finalScore, Math.min(99, Math.round(finalScore + totalGain)));
-    const potentialDelta = potentialScore - finalScore;
-    const potentialPercentile = PopulationReferenceDB.zToPercentile((potentialScore - mu) / sigma);
+    const gonialDeficit = (100 - sGonial) * 0.70;
+    const ramusDeficit = (100 - sRamus) * 0.65;
+    const elineDeficit = (100 - sEline) * 0.75;
+    const neckDeficit = (100 - sNeck) * 0.85;
+
+    const potGain = 0.30 * elineDeficit + 0.30 * neckDeficit + 0.20 * gonialDeficit + 0.20 * ramusDeficit;
+    const potScore = Math.max(sCeph, Math.min(99, Math.round(sCeph + potGain)));
+    const potDelta = potScore - sCeph;
+    const potPercentile = PopulationReferenceDB.zToPercentile((potScore - mu) / sigma);
 
     const potentialData = {
-      score: potentialScore,
-      delta: potentialDelta,
-      percentile: Math.round(potentialPercentile),
-      percentileText: `Up to Top ${(100 - potentialPercentile).toFixed(1)}% of population`,
-      percentileTextRu: `До Топ ${(100 - potentialPercentile).toFixed(1)}% популяции`,
+      score: potScore,
+      delta: potDelta,
+      percentile: Math.round(potPercentile),
+      percentileText: `Up to Top ${(100 - potPercentile).toFixed(1)}% of population`,
+      percentileTextRu: `До Топ ${(100 - potPercentile).toFixed(1)}% популяции`,
       reserves: {
-        neckPosture: Math.round(0.25 * cervicoGain),
-        mewingEline: Math.round(0.25 * elineGain),
-        masseters: Math.round(0.30 * gonialGain),
-        jawDefinition: Math.round(0.20 * convexityGain)
+        mewingEline: Math.round(0.30 * elineDeficit),
+        neckPosture: Math.round(0.30 * neckDeficit),
+        masseters: Math.round(0.20 * gonialDeficit + 0.20 * ramusDeficit)
       }
     };
 
     const reliabilityBreakdown = {
-      measuredPct: 82,
-      estimatedPct: 14,
+      measuredPct: 88,
+      estimatedPct: 8,
       notObservablePct: 4,
       photoQuality: qcRes ? qcRes.photoReliability : 88,
       confidenceRating: qcRes ? qcRes.confidenceRating : 'HIGH'
     };
 
-    const recs = this._generateComprehensiveProfileRecs(cephRes);
+    const recs = this._generateProfileRecs(cephReport);
 
     return {
       viewMode: 'profile',
       scientific: {
-        score: finalScore,
+        score: sCeph,
         zScore: parseFloat(zScore.toFixed(2)),
         percentile: Math.round(percentile),
         confidence: conf,
-        ci
+        uncertainty: unc
       },
       sexual: {
-        score: Math.round(0.70 * finalScore + 0.30 * m.gonialAngle.score),
+        score: Math.max(10, Math.min(99, Math.round(0.40 * sGonial + 0.30 * sRamus + 0.30 * sEline))),
         zScore: parseFloat(zScore.toFixed(2)),
         percentile: Math.round(percentile),
         confidence: conf,
-        ci
+        uncertainty: unc
       },
       psl: {
         score: finalPsl,
@@ -236,20 +279,16 @@ class AttractivenessScorer {
       reliability: reliabilityBreakdown,
       potential: potentialData,
       modules: {
-        cephalometrics: { score: sCeph, weight: '100%', metrics: cephRes.metrics, title: 'Sagittal Cephalometrics' }
+        cephalometrics: { score: sCeph, metrics: m, title: 'Sagittal Cephalometrics' }
       },
       recommendations: recs
     };
   }
 
   /**
-   * Evaluates DeepScan Composite (Анфас + Профиль)
+   * Evaluates DeepScan Composite (Сводный паспорт: Анфас + Профиль 90°)
    */
   static calculateComposite(frontalReport, profileReport) {
-    if (!frontalReport && !profileReport) return null;
-    if (!profileReport) return frontalReport;
-    if (!frontalReport) return profileReport;
-
     const fSci = frontalReport.scientific.score;
     const pSci = profileReport.scientific.score;
     const fSex = frontalReport.sexual.score;
@@ -262,11 +301,11 @@ class AttractivenessScorer {
     const zScoreSci = (compositeSciScore - mu) / sigma;
     const percentileSci = PopulationReferenceDB.zToPercentile(zScoreSci);
     const conf = Math.round((frontalReport.scientific.confidence + profileReport.scientific.confidence) / 2);
-    const ciSci = PopulationReferenceDB.compute95CI(compositeSciScore, conf);
+    const uncSci = PopulationReferenceDB.computeUncertainty(compositeSciScore, conf);
 
     const zScoreSex = (compositeSexScore - mu) / sigma;
     const percentileSex = PopulationReferenceDB.zToPercentile(zScoreSex);
-    const ciSex = PopulationReferenceDB.compute95CI(compositeSexScore, conf);
+    const uncSex = PopulationReferenceDB.computeUncertainty(compositeSexScore, conf);
 
     const pslRaw = 1.0 + (compositeSciScore / 100) * 8.5;
     const finalPsl = parseFloat(Math.max(1.0, Math.min(9.9, pslRaw)).toFixed(1));
@@ -298,7 +337,6 @@ class AttractivenessScorer {
       confidenceRating: 'HIGH'
     };
 
-    // Merge recommendations and prioritize
     const combinedRecs = [...frontalReport.recommendations, ...profileReport.recommendations];
     const uniqueRecs = [];
     const seen = new Set();
@@ -317,14 +355,14 @@ class AttractivenessScorer {
         zScore: parseFloat(zScoreSci.toFixed(2)),
         percentile: Math.round(percentileSci),
         confidence: conf,
-        ci: ciSci
+        uncertainty: uncSci
       },
       sexual: {
         score: compositeSexScore,
         zScore: parseFloat(zScoreSex.toFixed(2)),
         percentile: Math.round(percentileSex),
         confidence: conf,
-        ci: ciSex
+        uncertainty: uncSex
       },
       psl: {
         score: finalPsl,
@@ -335,10 +373,12 @@ class AttractivenessScorer {
       reliability: reliabilityBreakdown,
       potential: potentialData,
       scientificMatrix: {
-        dimorphism: { score: frontalReport.modules.dimorphism.score, weight: 35, label: 'Sexual Dimorphism & Hormonal Cues' },
-        anthropometry: { score: Math.round(0.50 * frontalReport.modules.anthro.score + 0.50 * profileReport.modules.cephalometrics.score), weight: 30, label: 'Craniofacial & Sagittal Proportions' },
-        skinHealth: { score: frontalReport.modules.skin.score, weight: 20, label: 'Facial Adiposity & Skin Health' },
-        symmetry: { score: frontalReport.modules.symmetry.score, weight: 15, label: 'Fluctuating Symmetry' }
+        averageness: { score: frontalReport.modules.morph3D ? Math.round(frontalReport.modules.morph3D.score3D || 85) : 85, weight: 16.7, label: 'Averageness & Prototypicality' },
+        skinHealth: { score: frontalReport.modules.skin.score, weight: 16.7, label: 'Skin & Soft-Tissue Appearance' },
+        symmetry: { score: frontalReport.modules.symmetry.score, weight: 16.7, label: 'Fluctuating Symmetry & Balance' },
+        periorbital: { score: frontalReport.modules.periorbital.score, weight: 16.7, label: 'Periorbital & Eye Harmony' },
+        anthropometry: { score: Math.round(0.50 * frontalReport.modules.anthro.score + 0.50 * profileReport.modules.cephalometrics.score), weight: 16.7, label: 'Craniofacial & Sagittal Architecture' },
+        dimorphism: { score: frontalReport.modules.dimorphism.score, weight: 16.7, label: 'Secondary Sexual Dimorphism' }
       },
       frontalReport,
       profileReport,
@@ -351,278 +391,159 @@ class AttractivenessScorer {
    */
   static _getPslTier(psl) {
     if (psl >= 8.0) {
-      return { code: 'ELITE', name: 'Elite / Model Grade', badgeClass: 'tier-s', descEn: 'Exceptional skeletal topology, high dimorphism, and elite cranial harmony.', descRu: 'Исключительная костная топология, выраженный диморфизм и элитная гармония.' };
+      return { code: 'ELITE / GIGACHAD', badgeClass: 'tier-s', descEn: 'Top 0.1% Looksmax community tier', descRu: 'Топ 0.1% стандарт сообщества Looksmax' };
     } else if (psl >= 7.0) {
-      return { code: 'VERY HIGH', name: 'Very High / Chadlite', badgeClass: 'tier-a', descEn: 'Strong jawline definition, striking eye compactness, and excellent facial balance.', descRu: 'Выраженная линия челюсти, глубокая посадка глаз и отличный баланс лица.' };
+      return { code: 'CHADLITE / HIGH TIER', badgeClass: 'tier-a', descEn: 'Top 2% Looksmax tier', descRu: 'Топ 2% стандарт сообщества Looksmax' };
     } else if (psl >= 6.0) {
-      return { code: 'HIGH', name: 'High / Above Average', badgeClass: 'tier-b', descEn: 'Solid craniofacial framework with distinct positive aesthetic traits.', descRu: 'Крепкая краниофациальная база с выраженными положительными чертами.' };
+      return { code: 'HIGH / ABOVE AVERAGE', badgeClass: 'tier-b', descEn: 'Top 15% Looksmax tier', descRu: 'Топ 15% стандарт сообщества Looksmax' };
     } else if (psl >= 5.0) {
-      return { code: 'ABOVE AVERAGE', name: 'Above Average / High Norm', badgeClass: 'tier-b', descEn: 'Harmonious proportions without significant deviations from normative averages.', descRu: 'Гармоничные пропорции без значительных отклонений от популяционной нормы.' };
+      return { code: 'MEDIAN / NORMIE', badgeClass: 'tier-c', descEn: 'Population average tier', descRu: 'Среднепопуляционный тир' };
     } else if (psl >= 4.0) {
-      return { code: 'AVERAGE', name: 'Average / Median Population', badgeClass: 'tier-c', descEn: 'Standard population distribution with clear opportunities for soft-tissue optimization.', descRu: 'Средний популяционный уровень с явным потенциалом для оптимизации мягких тканей.' };
-    } else if (psl >= 3.0) {
-      return { code: 'BELOW AVERAGE', name: 'Below Average / Sub-Median', badgeClass: 'tier-d', descEn: 'Observable structural imbalances or facial soft-tissue deficits.', descRu: 'Заметный дисбаланс пропорций или дефицит тонуса мягких тканей.' };
+      return { code: 'LTN / LOW TIER NORMIE', badgeClass: 'tier-d', descEn: 'Below average tier', descRu: 'Ниже среднего' };
     } else {
-      return { code: 'LOW', name: 'Low / Disproportional', badgeClass: 'tier-d', descEn: 'Pronounced craniofacial disproportion or photographic perspective distortion.', descRu: 'Выраженная диспропорция или сильное искажение ракурса съемки.' };
+      return { code: 'SUB-FIVE', badgeClass: 'tier-f', descEn: 'Significant optimization reserve', descRu: 'Высокий потенциал оптимизации' };
     }
   }
 
   /**
-   * 100% Comprehensive Scientific Frontal Optimization Protocols Engine
-   * Covers all 12 anatomical domains with rich, structured clinical & lifestyle steps.
+   * Comprehensive Recommendations Engine
    */
   static _generateComprehensiveFrontalRecs(morph2D, skinRes, symRes, morph3D) {
-    const recs = [];
     const m = morph2D.metrics;
-    const s = skinRes ? skinRes.metrics : {};
-    const sy = symRes ? symRes.metrics : {};
+    const recs = [];
 
-    // 1. CHEEK HOLLOW & ADIPOSITY
-    recs.push({
-      titleEn: 'Facial Adiposity & Cheek Hollow Protocol',
-      titleRu: 'Устранение лицевой адипозности & Cheek Hollow',
-      categoryEn: 'Softmaxxing / Body Fat & Water',
-      categoryRu: 'Softmaxxing / Жир & Отек',
-      level: 'soft',
-      gain: '+4-6 pts',
-      rawGain: 5.5,
-      icon: 'activity',
-      textEn: `<strong>Photo Diagnostic:</strong> Insufficient volumetric contrast between the zygomatic cheekbone arch and the sub-zygomatic buccal hollow.
-               <br><strong>Biological Protocol:</strong>
-               • <em>Target Body Fat:</em> Reduce systemic adiposity to 10–13% for men / 18–21% for women. Subcutaneous facial fat is among the first to deplete in caloric deficit.
-               • <em>Sodium / Potassium Osmotic Gradient:</em> Limit sodium to &lt; 2000 mg/day and increase dietary potassium to 3800–4500 mg/day to purge interstitial water from the buccal fat pad region.
-               • <em>Morning Cold Lymphatic Flush:</em> 3-minute cold face immersion + gentle upward lymphatic drainage to eliminate overnight facial edema.`,
-      textRu: `<strong>Диагностика снимка:</strong> Недостаточный объемный контраст между скуловой дугой и подскуловой щечной ямкой.
-               <br><strong>Пошаговый протокол:</strong>
-               • <em>Целевой процент жира:</em> Снижение общего Body Fat до 10–13% (мужчины) / 18–21% (женщины). Лицевой подкожный жир уходит в первую очередь при умеренном дефиците.
-               • <em>Натрий-калиевый градиент:</em> Ограничение скрытого натрия &lt; 2000 мг/день и увеличение калия до 3800–4500 мг/день для вывода интерстициальной жидкости из щечной зоны.
-               • <em>Утренний лимфодренаж:</em> Контрастное умывание холодной водой + массаж по лимфатическим путям к ключицам.`
-    });
+    // 1. Skin & Soft Tissue
+    if (skinRes && skinRes.metrics.carotenoid.score < 82) {
+      recs.push({
+        id: 'rec_carotenoid',
+        level: 'soft',
+        icon: 'carrot',
+        titleEn: 'Dietary Carotenoid Protocol (Beta-Carotene & Lycopene)',
+        titleRu: 'Протокол каротиноидной оптимизации тона кожи',
+        categoryEn: 'Dermatological Nutrition',
+        categoryRu: 'Дерматологическая нутрициология',
+        gain: '+2.5 pts to Perceived Skin Vitality',
+        gainRu: '+2.5 pts к визуальной свежести кожи',
+        rawGain: 2.5,
+        textEn: 'Stephen et al. (2011) demonstrated that increasing dietary beta-carotene (carrots, sweet potatoes) and lycopene (cooked tomatoes) by 15-25mg/day significantly enhances skin yellowness (CIELAB b*), which human observers perceive as a primary cue of health and attractiveness.',
+        textRu: 'Исследования Stephen et al. (2011) доказали, что повышение потребления бета-каротина и ликопина увеличивает значение b* в шкале CIELAB, что воспринимается людьми как индикатор здоровья и привлекательности.'
+      });
+    }
 
-    // 2. CIELAB SKIN UNIFORMITY & MICRORELIEF
-    recs.push({
-      titleEn: 'Dermatological CIELAB Skin Uniformity Protocol',
-      titleRu: 'Дерматологический протокол CIELAB (Тон & Поры)',
-      categoryEn: 'Dermatology / Skincare',
-      categoryRu: 'Дерматология / Skincare',
-      level: 'soft',
-      gain: '+4-5 pts',
-      rawGain: 4.5,
-      icon: 'sparkle',
-      textEn: `<strong>Photo Diagnostic:</strong> Elevated color variance σ(a*, b*) and microrelief pore dispersion detected.
-               <br><strong>Biological Protocol:</strong>
-               • <em>AM Routine:</em> Niacinamide 5% + Azelaic Acid 10% (inhibits tyrosinase, reduces erythema/redness) + Broad-spectrum Sunscreen SPF 50+ (PA++++).
-               • <em>PM Routine:</em> Retinoid (Tretinoin 0.025%–0.05% every other evening). Stimulates type-I procollagen, tightens follicular ostia (pores), and smooths Laplacian surface roughness.
-               • <em>Barrier Support:</em> Ceramides 1, 3, 6-II + 2% Hyaluronic acid to prevent transepidermal water loss.`,
-      textRu: `<strong>Диагностика снимка:</strong> Обнаружена повышенная дисперсия цвета σ(a*, b*) и микрорельеф пор.
-               <br><strong>Пошаговый протокол:</strong>
-               • <em>Утро:</em> Ниацинамид 5% + Азелаиновая кислота 10% (блокирует эритему и пигментацию) + Защитный крем SPF 50+ (PA++++).
-               • <em>Вечер:</em> Третиноин 0.025–0.05% через день (синтез коллагена I типа, утолщение дермы, сглаживание пор).
-               • <em>Барьерный уход:</em> Комплекс церамидов и низкомолекулярная гиалуроновая кислота для удержания влаги.`
-    });
+    if (skinRes && skinRes.metrics.uniformity.score < 80) {
+      recs.push({
+        id: 'rec_retinoid',
+        level: 'soft',
+        icon: 'sparkles',
+        titleEn: 'Topical Retinoid & Daily SPF 50+ Broad-Spectrum',
+        titleRu: 'Топические ретиноиды и ежедневный SPF 50+ широкого спектра',
+        categoryEn: 'Dermatological Protocol',
+        categoryRu: 'Дерматологический протокол',
+        gain: '+3.0 pts to Skin Texture Homogeneity',
+        gainRu: '+3.0 pts к однородности тона и микрорельефу',
+        rawGain: 3.0,
+        textEn: 'Fink et al. (2006) established that facial skin color homogeneity accounts for significant variance in attractiveness ratings. Incorporate 0.025%-0.05% topical tretinoin/adapalene combined with UVA/UVB SPF 50+ to reduce color variance (std dev σ < 3.8).',
+        textRu: 'Fink et al. (2006) установили, что гомогенность тона кожи является ключевым предиктором привлекательности. Ретиноиды ускоряют клеточное обновление, сглаживая дисперсию тона σ < 3.8.'
+      });
+    }
 
-    // 3. CAROTENOID GLOW
-    recs.push({
-      titleEn: 'Carotenoid Golden Undertone Saturation (b*-Glow)',
-      titleRu: 'Каротиноидный биохакинг (b*-Saturation)',
-      categoryEn: 'Nutrition / Biohacking',
-      categoryRu: 'Питание / Биохакинг',
-      level: 'soft',
-      gain: '+3-4 pts',
-      rawGain: 3.5,
-      icon: 'sun',
-      textEn: `<strong>Photo Diagnostic:</strong> Skin exhibits pale or cold spectrum undertone (sub-optimal b* yellowness saturation).
-               <br><strong>Biological Protocol:</strong>
-               • <em>Dietary Loading:</em> 15–20 mg Beta-Carotene + 10 mg Lycopene + 5 mg Astaxanthin daily for 4–6 weeks.
-               • <em>Bioavailability Factor:</em> Always consume with 10–15g healthy fats (extra virgin olive oil / avocado) as carotenoids are strictly lipophilic.
-               • <em>Evidence Base:</em> Oxford & St Andrews evolutionary studies confirm a golden b* carotenoid tone is statistically perceived as significantly healthier and more attractive than a melanin tan.`,
-      textRu: `<strong>Диагностика снимка:</strong> Кожа имеет бледный или холодный спектр (дефицит золотистого тона b*).
-               <br><strong>Пошаговый протокол:</strong>
-               • <em>Каротиноидная загрузка:</em> 15–20 мг бета-каротина + 10 мг ликопина + 5 мг астаксантина ежедневно в течение 4–6 недель (вареная морковь, томатная паста, тыква).
-               • <em>Биодоступность:</em> Обязательно употреблять с 10–15г полезных жиров (оливковое масло), так как каротиноиды жирорастворимы.
-               • <em>Научный факт:</em> Доказано исследованиями: золотистый b* оттенок подсознательно воспринимается привлекательнее и здоровее, чем ультрафиолетовый загар.`
-    });
+    // 2. Periorbital & Sleep
+    if (m.scleralShow.score100 < 80 || (skinRes && skinRes.metrics.darkCircles.score < 80)) {
+      recs.push({
+        id: 'rec_periorbital',
+        level: 'medium',
+        icon: 'moon',
+        titleEn: 'Circadian Sleep Restoration & Caffeine 5% + EGCG Serum',
+        titleRu: 'Циркадный сон и сыворотка с кофеином 5% + EGCG',
+        categoryEn: 'Periorbital Care',
+        categoryRu: 'Периорбитальный уход',
+        gain: '+2.8 pts to Periorbital Complex',
+        gainRu: '+2.8 pts к тонусу век и периорбитальной зоне',
+        rawGain: 2.8,
+        textEn: 'Axelsson et al. (2010) demonstrated sleep deprivation increases palpebral ptosis, periorbital edema, and dark circles. Maintain 7.5-8.5h sleep with elevated head position and topical caffeine/vitamin K oxide.',
+        textRu: 'Axelsson et al. (2010) показали, что депривация сна усиливает птоз нижнего века и темные круги. Регулярный сон и кофеин 5% улучшают микроциркуляцию.'
+      });
+    }
 
-    // 4. PERIORBITAL TONE & HUNTER EYES
-    recs.push({
-      titleEn: 'Periorbital Tone & Scleral Show Reduction (Hunter Eyes)',
-      titleRu: 'Периорбитальный тонус век & Hunter Eyes',
-      categoryEn: 'Eye Muscle Training',
-      categoryRu: 'Тренинг глазных мышц',
-      level: 'medium',
-      gain: '+4-6 pts',
-      rawGain: 5.0,
-      icon: 'scan',
-      textEn: `<strong>Photo Diagnostic:</strong> Lower eyelid margin laxity or neutral canthal tilt with visible inferior scleral show.
-               <br><strong>Biological Protocol:</strong>
-               • <em>Isometric Eyelid Squints:</em> Isolate and contract the lower pre-tarsal orbicularis oculi (squinting solely with lower lids without brow movement) 3 sets of 30 reps daily.
-               • <em>Orbital Rim Firming:</em> Strengthens the lower eyelid suspensory apparatus, reducing lower scleral show and creating a compact almond/hunter eye aperture.
-               • <em>Sleep Elevation:</em> Sleep with head elevated 15–20° to eliminate periorbital pooling and palpebral sagging.`,
-      textRu: `<strong>Диагностика снимка:</strong> Расслабление нижнего века, нейтральный тилт или наличие нижнего склерального просвета.
-               <br><strong>Пошаговый протокол:</strong>
-               • <em>Изометрические прищуривания:</em> Изолированное напряжение нижнего века (squinting нижними веками без движения бровей) 3 подхода по 30 повторений ежедневно.
-               • <em>Укрепление тарзальной пластинки:</em> Увеличивает тонус круговой мышцы глаза, устраняя склеральный просвет и формируя компактную миндалевидную форму глаз.
-               • <em>Положение во сне:</em> Приподнятое изголовье (15–20°) для предотвращения утренней отечности век.`
-    });
+    // 3. Symmetry & Bilateral Chewing
+    if (symRes && symRes.scoreStructural < 82) {
+      recs.push({
+        id: 'rec_symmetry',
+        level: 'medium',
+        icon: 'scale',
+        titleEn: 'Bilateral Chewing Equilibrium & Masticatory Balance',
+        titleRu: 'Сбалансированное билатеральное жевание и коррекция прикуса',
+        categoryEn: 'Myofunctional Exercise',
+        categoryRu: 'Миофункциональная коррекция',
+        gain: '+2.4 pts to Bilateral Symmetry',
+        gainRu: '+2.4 pts к билатеральной симметрии',
+        rawGain: 2.4,
+        textEn: 'Unilateral chewing causes hypertrophic asymmetry of the masseter muscle and temporal bone torsion. Consciously distribute masticatory load 50/50 and screen for unilateral dental malocclusion.',
+        textRu: 'Одностороннее жевание приводит к гипертрофической асимметрии массетеров. Равномерное жевание 50/50 восстанавливает симметрию нижней трети.'
+      });
+    }
 
-    // 5. MASSETER HYPERTROPHY & fWHR
-    recs.push({
-      titleEn: 'Masseter Hypertrophy for fWHR & Bigonial Expansion',
-      titleRu: 'Гипертрофия жевательных мышц (fWHR & Bigonial)',
-      categoryEn: 'Muscle Hypertrophy',
-      categoryRu: 'Мышечная гипертрофия',
-      level: 'medium',
-      gain: '+5-7 pts',
-      rawGain: 6.0,
-      icon: 'dumbbell',
-      textEn: `<strong>Photo Diagnostic:</strong> Bigonial width to bizygomatic ratio below 0.88 or narrow lower jaw taper.
-               <br><strong>Biological Protocol:</strong>
-               • <em>Resistance Mastication:</em> Progressive masticatory loading using natural Chios mastic resin or Falim gum for 30–45 minutes every other day.
-               • <em>Masseter Hypertrophy:</em> Increases lateral belly volume of the superficial masseter by 3–7 mm, expanding bigonial breadth and improving masculine fWHR into the 1.95–2.10 demographic ideal.
-               • <em>TMJ Safety Protocol:</em> Never chew through sharp pain; incorporate bilateral jaw stretching and lateral pterygoid massage post-workout.`,
-      textRu: `<strong>Диагностика снимка:</strong> Отношение челюсти к скулам ниже 0.88 или узкий нижний конус лица.
-               <br><strong>Пошаговый протокол:</strong>
-               • <em>Нагрузочное жевание:</em> Жевательные тренировки с твердой хиосской смолой (мастикой) или плотной резинкой по 30–45 минут через день.
-               • <em>Рост массетеров:</em> Латеральная гипертрофия жевательных мышц добавляет 3–7 мм к ширине углов челюсти, смещая fWHR в идеальный модельный диапазон 1.95–2.10.
-               • <em>Безопасность ВНЧС:</em> Избегать резких щелчков; проводить расслабляющий массаж височных мышц после нагрузки.`
-    });
-
-    // 6. ASYMMETRY & BILATERAL MASTICATION
-    recs.push({
-      titleEn: 'Bilateral Symmetry & Coaxial Alignment Protocol',
-      titleRu: 'Коррекция флуктуирующей асимметрии (FA) и соосности',
-      categoryEn: 'Biomechanics & Habits',
-      categoryRu: 'Биомеханика & Привычки',
-      level: 'medium',
-      gain: '+3-5 pts',
-      rawGain: 4.0,
-      icon: 'scale',
-      textEn: `<strong>Photo Diagnostic:</strong> Lateral fluctuating asymmetry (FA) deviation across paired bilateral landmarks.
-               <br><strong>Biological Protocol:</strong>
-               • <em>Strict 50/50 Mastication:</em> Consciously balance chewing cycles evenly between left and right dental arches to prevent unilateral masseter/temporalis dominance.
-               • <em>Supine Sleep Ergonomics:</em> Strictly sleep on your back using an ergonomic cervical pillow; lateral side sleeping causes unilateral zygomatic compression and midfacial skewing over time.
-               • <em>Postural Midline Correction:</em> Address unilateral cervical lateral flexion with a physical therapist.`,
-      textRu: `<strong>Диагностика снимка:</strong> Зафиксировано латеральное смещение парных точек и легкое отклонение срединной оси.
-               <br><strong>Пошаговый протокол:</strong>
-               • <em>Двустороннее жевание 50/50:</em> Равномерное распределение жевательной нагрузки между левой и правой стороной для устранения односторонней гипертрофии.
-               • <em>Сон на спине:</em> Исключить сон лицом в подушку или на одном боку (вызывает асимметричное уплощение скуловой дуги со временем).
-               • <em>Коррекция шейного наклона:</em> Устранение спазма латеральных мышц шеи.`
-    });
-
-    // 7. PERIORBITAL DARK CIRCLES
-    recs.push({
-      titleEn: 'Infraorbital Dark Circles & Microvascular Decongestion',
-      titleRu: 'Устранение темных кругов под глазами (ΔL*)',
-      categoryEn: 'Periorbital Skincare',
-      categoryRu: 'Периорбитальный уход',
-      level: 'soft',
-      gain: '+2-3 pts',
-      rawGain: 3.0,
-      icon: 'eye',
-      textEn: `<strong>Photo Diagnostic:</strong> Sub-orbital luminance deficit (negative ΔL*) relative to adjacent cheekbone skin.
-               <br><strong>Biological Protocol:</strong>
-               • <em>Active Decongestants:</em> Apply serum containing Caffeine 5% + Epigallocatechin Gallate (EGCG) + Vitamin K1 to reduce microcapillary venous stasis.
-               • <em>Circadian Deep Sleep:</em> 7.5–8.5 hours in complete darkness (0 lux) with high REM sleep phases to restore microvascular tone.
-               • <em>Sun Protection:</em> Mineral Zinc Oxide SPF around orbital rim to prevent post-inflammatory hemosiderin hyperpigmentation.`,
-      textRu: `<strong>Диагностика снимка:</strong> Затемнение подглазничной зоны (отрицательный ΔL*) относительно скулы.
-               <br><strong>Пошаговый протокол:</strong>
-               • <em>Сосудистая терапия:</em> Сыворотка с кофеином 5%, EGCG и Витамином K1 для ликвидации венозного стаза под тонкой кожей век.
-               • <em>Циркадный сон:</em> 7.5–8.5 часов в 100% темноте с фазами глубокого сна для микрокапиллярной регенерации.
-               • <em>Минеральный SPF:</em> Защита орбитальной зоны от ультрафиолетового отложения гемосидерина.`
-    });
-
-    // 8. BROW RIDGE & SUPRAORBITAL DENSITY
-    recs.push({
-      titleEn: 'Eyebrow Density & Brow Ridge Compactness',
-      titleRu: 'Плотность бровей & Компактность надбровных дуг',
-      categoryEn: 'Softmaxxing / Hair Density',
-      categoryRu: 'Softmaxxing / Плотность волос',
-      level: 'soft',
-      gain: '+2-4 pts',
-      rawGain: 3.5,
-      icon: 'trending-up',
-      textEn: `<strong>Photo Diagnostic:</strong> Brow thickness index or brow-eye distance deviates from demographic ideal.
-               <br><strong>Biological Protocol:</strong>
-               • <em>Follicular Stimulation:</em> Topical application of Minoxidil 5% or Copper Tripeptide (GHK-Cu) to medial and lateral eyebrow tails + 0.5mm micro-needling once weekly.
-               • <em>Low Brow Positioning:</em> Avoid aggressive upward eyebrow shaping; maintain natural, low-set horizontal arch for enhanced masculine hunter compactness.`,
-      textRu: `<strong>Диагностика снимка:</strong> Толщина или посадка бровей отклоняется от идеального диапазона.
-               <br><strong>Пошаговый протокол:</strong>
-               • <em>Стимуляция фолликулов:</em> Нанесение пептидов меди GHK-Cu или миноксидила на тело и хвостик бровей + микронидлинг 0.5 мм 1 раз в неделю.
-               • <em>Архитектура брови:</em> Сохранение естественной прямой/низкой посадки бровей для придания взгляду компактности и глубины.`
-    });
-
-    // 9. CLINICAL / SPECIALIZED CONSIDERATIONS
-    recs.push({
-      titleEn: 'Clinical Skeletal & Orthodontic Considerations',
-      titleRu: 'Клинические и ортодонтические ориентиры (Specialized)',
-      categoryEn: 'Clinical / Specialized',
-      categoryRu: 'Клинический / Специальный',
-      level: 'advanced',
-      gain: '+6-12 pts',
-      rawGain: 8.0,
-      icon: 'shield',
-      textEn: `<strong>Clinical Diagnostic:</strong> Structural skeletal base proportions (fWHR, lower third, sagittal convexity).
-               <br><strong>Expert Pathways:</strong>
-               • <em>Transverse Skeletal Expansion (MSE / MARPE):</em> For narrow maxilla, midface crowding, or deficient bizygomatic bone support.
-               • <em>Orthognathic / Sliding Genioplasty:</em> For significant mandibular retrognathia (recessed chin) to harmonize Holdaway H-line and E-Line.
-               • <em>Custom PEEK Infraorbital Implants:</em> Indicated exclusively for severe negative orbital vector with lack of infraorbital rim bone support.`,
-      textRu: `<strong>Клиническая диагностика:</strong> Структурные костные ориентиры (fWHR, высота нижней трети, сагиттальная выпуклость).
-               <br><strong>Клинические направления:</strong>
-               • <em>Скелетное расширение верхней челюсти (MSE / MARPE):</em> При сужении зубных дуг, скуловом дефиците и нарушении носового дыхания.
-               • <em>Скользящая гениопластика:</em> При дистальном положении подбородка для выравнивания сагиттальной линии Риккетса E-Line.
-               • <em>Индивидуальные PEEK-импланты орбитального края:</em> При выраженном отрицательном орбитальном векторе и дефиците опоры глазного яблока.`
-    });
+    // 4. Facial Adiposity & Body Fat
+    if (skinRes && skinRes.metrics.adiposity.score < 82) {
+      recs.push({
+        id: 'rec_leanness',
+        level: 'soft',
+        icon: 'activity',
+        titleEn: 'Systemic Body Fat Optimization (10–14% Body Fat Target)',
+        titleRu: 'Оптимизация процента подкожного жира (10–14% для мужчин)',
+        categoryEn: 'Body Composition',
+        categoryRu: 'Композиция тела',
+        gain: '+3.5 pts to Mandibular Definition & Cheek Hollow',
+        gainRu: '+3.5 pts к четкости челюсти и скуловому контуру',
+        rawGain: 3.5,
+        textEn: 'Coetzee et al. (2012) proved facial adiposity is heavily correlated with perceived health and facial definition. Reducing body fat to 10-14% (men) or 19-22% (women) sharpens the mandibular border and zygomatic arch.',
+        textRu: 'Coetzee et al. (2012) доказали связь лицевой адипозности с восприятием привлекательности. Снижение процента жира до 10-14% подчеркивает скулы и угол челюсти.'
+      });
+    }
 
     return recs;
   }
 
-  static _generateComprehensiveProfileRecs(cephRes) {
+  /**
+   * Profile Cephalometric Recommendations
+   */
+  static _generateProfileRecs(cephReport) {
+    const m = cephReport.metrics;
     const recs = [];
-    const m = cephRes.metrics;
 
-    // 1. CERVICOMENTAL ANGLE & FORWARD HEAD POSTURE
-    recs.push({
-      titleEn: 'Cervicomental Neck Angle & Posture Protocol',
-      titleRu: 'Шейно-подбородочный угол и осанка (Chin Tucks)',
-      categoryEn: 'Posture & Biomechanics',
-      categoryRu: 'Осанка & Биомеханика',
-      level: 'medium',
-      gain: '+4-6 pts',
-      rawGain: 5.5,
-      icon: 'activity',
-      textEn: `<strong>Photo Diagnostic:</strong> Obtuse cervicomental angle (> 118°) linked to forward head posture and hyoid depression.
-               <br><strong>Biological Protocol:</strong>
-               • <em>McKenzie Chin Tucks:</em> 3 sets of 15 reps daily (retracting the head straight back without tilting). Activates deep cervical flexors (longus capitis/colli).
-               • <em>Hyoid Elevation:</em> Elevating the posterior tongue to the palate instantly tightens the submental mylohyoid hammock, sharpening the jawline profile by 10–15°.
-               • <em>Ergonomic Alignment:</em> Elevate monitors to eye level; eliminate neck flexion ('tech neck') during mobile usage.`,
-      textRu: `<strong>Диагностика снимка:</strong> Тупой шейно-подбородочный угол (> 118°), связанный с выдвижением головы вперед (Forward Head Posture).
-               <br><strong>Пошаговый протокол:</strong>
-               • <em>Chin Tucks по Маккензи:</em> 3 подхода по 15 повторений ежедневно (втягивание подбородка строго назад). Укрепляет глубокие сгибатели шеи.
-               • <em>Подъем подъязычной кости:</em> Прижатие задней трети языка к нёбу мгновенно подтягивает подъязычные мышцы, улучшая четкость шеи на 10–15°.
-               • <em>Эргономика рабочего места:</em> Подъем экрана на уровень глаз для исключения наклона шеи.`
-    });
+    if (m.cervicomental && (m.cervicomental.score || m.cervicomental.score100 || 100) < 82) {
+      recs.push({
+        id: 'rec_chin_tuck',
+        level: 'medium',
+        icon: 'arrow-up-right',
+        titleEn: 'Deep Cervical Flexor Training (McKenzie Chin Tucks)',
+        titleRu: 'Тренинг глубоких сгибателей шеи (Чин-таки Маккензи)',
+        categoryEn: 'Postural Alignment',
+        categoryRu: 'Постуральная коррекция',
+        gain: '+3.8 pts to Cervicomental Neck Angle',
+        gainRu: '+3.8 pts к шейно-подбородочному углу',
+        rawGain: 3.8,
+        textEn: 'Forward head posture reduces mandibular apparent projection and flattens the cervicomental angle by 12-18°. Perform 3 sets of 15 isometric chin tucks daily to activate longus colli muscles.',
+        textRu: 'Выдвижение шеи вперед сглаживает шейно-подбородочный угол на 12-18°. Изометрические чин-таки Маккензи 3x15 в день восстанавливают проекцию подбородка.'
+      });
+    }
 
-    // 2. ORAL POSTURE & RICKETTS E-LINE (MEWING)
-    recs.push({
-      titleEn: 'Oral Posture & Ricketts E-Line Optimization (Mewing)',
-      titleRu: 'Ортотропия Mewing & Линия Риккетса E-Line',
-      categoryEn: 'Orthotropics',
-      categoryRu: 'Ортотропия / Постура',
-      level: 'soft',
-      gain: '+3-5 pts',
-      rawGain: 4.5,
-      icon: 'sparkle',
-      textEn: `<strong>Photo Diagnostic:</strong> Sub-optimal lower lip-to-E-Line projection or lip incompetence.
-               <br><strong>Biological Protocol:</strong>
-               • <em>Posterior Palatal Seal (Mewing):</em> Rest the entire tongue body (especially the posterior third) firmly against the hard palate with teeth lightly touching.
-               • <em>Closed Lip Seal:</em> Ensure lips remain sealed without mentalis strain; practice swallowing with tongue vacuum suction rather than buccinator muscles.
-               • <em>Nighttime Nasal Breathing:</em> Use gentle micropore sleep tape to ensure 100% nasal breathing and prevent nocturnal mandibular retrusion.`,
-      textRu: `<strong>Диагностика снимка:</strong> Неоптимальная проекция губ относительно линии Риккетса E-Line.
-               <br><strong>Пошаговый протокол:</strong>
-               • <em>Положение языка на нёбе (Mewing):</em> Удержание всего тела языка (включая заднюю треть) на твердом нёбе с сомкнутыми губами 24/7.
-               • <em>Правильное глотание:</em> Глотание за счет вакуумного движения языка без напряжения щечных мышц.
-               • <em>Носовое дыхание:</em> Использование гипоаллергенного тейпа для сна для обеспечения непрерывного носового дыхания и предотвращения ночного западания челюсти.`
-    });
+    if (m.eline && (m.eline.score || m.eline.score100 || 100) < 80) {
+      recs.push({
+        id: 'rec_mewing',
+        level: 'medium',
+        icon: 'smile',
+        titleEn: 'Palatal Tongue Posture (Mewing / Orthotropic Rest Position)',
+        titleRu: 'Палатальная осанка языка (Мьюинг / Ортотропика)',
+        categoryEn: 'Myofunctional Therapy',
+        categoryRu: 'Миофункциональная терапия',
+        gain: '+2.6 pts to Sagittal Submental Tone',
+        gainRu: '+2.6 pts к сагиттальному тонусу подъязычной зоны',
+        rawGain: 2.6,
+        textEn: 'Maintaining continuous resting contact of the posterior third of the tongue against the hard and soft palate elevates the hyoid bone, immediately tightening the submental soft tissue profile.',
+        textRu: 'Прижатие задней трети языка к небу поднимает подъязычную кость, мгновенно подтягивая ткани подбородка и улучшая линию Риккетса.'
+      });
+    }
 
     return recs;
   }

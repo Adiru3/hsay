@@ -1,17 +1,16 @@
 /**
  * HSAY - Comprehensive 2D Morphometry Engine
  * Covers all anatomical modules:
- * 1. Craniofacial Proportions (fWHR, thirds, fifths, widths, ratios)
- * 2. Periorbital Complex & Eyes (canthal tilt, scleral show, palpebral aspect, intercanthal, Hunter eyes)
- * 3. Brows & Brow Ridge (thickness, arch, position, compactness)
- * 4. Nasal Morphology (width, length, alar base, symmetry, nasolabial)
- * 5. Lips & Philtrum (lip ratio, philtrum ratio, mouth-to-nose, cupid's bow)
- * 6. Cheekbones & Malar Projection (bizygomatic, prominence, symmetry, jaw-cheek ratio)
- * 7. Mandibular Architecture (jaw width, taper, gonial angle estimate, symmetry)
- * 8. Chin Morphology (height, width, projection, philtrum-chin relationship)
- * 9. Hairline & Forehead (height, shape, symmetry)
- * 10. Secondary Sexual Dimorphism & Facial Masculinity/Femininity
- * 11. Biological Youthfulness & Perceived Age
+ * 1. Craniofacial Anthropometry (fWHR, thirds, fifths, widths, ratios)
+ * 2. Periorbital Complex & Eyes (canthal tilt, scleral show, palpebral aspect, intercanthal)
+ * 3. Hunter Eyes Index (COMMUNITY METRIC - isolated from scientific Z-Scores)
+ * 4. Brows & Brow Ridge (thickness, arch, curvature)
+ * 5. Nasal Morphology (alar base width, length, symmetry)
+ * 6. Lips & Philtrum (lip ratio, philtrum ratio, mouth-to-nose)
+ * 7. Mandibular Architecture (mandibular taper angle, jaw-cheek ratio)
+ * 8. Chin Morphology (chin height ratio, philtrum-chin relationship)
+ * 9. Secondary Sexual Dimorphism
+ * 10. Visual Youthfulness (Perceived)
  */
 class Morphometry2DEngine {
   /**
@@ -49,9 +48,14 @@ class Morphometry2DEngine {
     const hUpper = Math.abs(glabella.y - foreheadTop.y);
     const hMid = Math.abs(subnasale.y - glabella.y);
     const hLower = Math.abs(menton.y - subnasale.y);
-    const avgThird = (hUpper + hMid + hLower) / 3 || 1;
-    const devThirds = ((Math.abs(hUpper - avgThird) + Math.abs(hMid - avgThird) + Math.abs(hLower - avgThird)) / (3 * avgThird)) * 100;
-    const thirdsStr = `${(hUpper / avgThird).toFixed(2)} : ${(hMid / avgThird).toFixed(2)} : ${(hLower / avgThird).toFixed(2)}`;
+    const totalHeight = hUpper + hMid + hLower || 1;
+    
+    // Normalized proportional representation of facial thirds (33% : 33% : 33%)
+    const tUpperPct = (hUpper / totalHeight) * 100;
+    const tMidPct = (hMid / totalHeight) * 100;
+    const tLowerPct = (hLower / totalHeight) * 100;
+    const thirdsStr = `${Math.round(tUpperPct)}% : ${Math.round(tMidPct)}% : ${Math.round(tLowerPct)}%`;
+    const devThirds = (Math.abs(tUpperPct - 33.3) + Math.abs(tMidPct - 33.3) + Math.abs(tLowerPct - 33.3)) / 3;
 
     // Rule of Fifths
     const earL = pts[234], eyeOutL = pts[33], eyeInL = pts[133];
@@ -61,8 +65,8 @@ class Morphometry2DEngine {
     const w3 = Math.abs(eyeInR.x - eyeInL.x);
     const w4 = Math.abs(eyeOutR.x - eyeInR.x);
     const w5 = Math.abs(earR.x - eyeOutR.x);
-    const avgFifth = (w1 + w2 + w3 + w4 + w5) / 5 || 1;
-    const devFifths = ((Math.abs(w1 - avgFifth) + Math.abs(w2 - avgFifth) + Math.abs(w3 - avgFifth) + Math.abs(w4 - avgFifth) + Math.abs(w5 - avgFifth)) / (5 * avgFifth)) * 100;
+    const totalW = w1 + w2 + w3 + w4 + w5 || 1;
+    const devFifths = (Math.abs(w1/totalW - 0.20) + Math.abs(w2/totalW - 0.20) + Math.abs(w3/totalW - 0.20) + Math.abs(w4/totalW - 0.20) + Math.abs(w5/totalW - 0.20)) / 5 * 100;
 
     const bigonialWidth = dist(pts[132], pts[361]); // Width at gonial angles
     const jawCheekRatioVal = bigonialWidth / (bizygomaticWidth || 1);
@@ -121,7 +125,7 @@ class Morphometry2DEngine {
     const avgBrowDist = (browDistL + browDistR) / 2;
     const orbitalCompactnessVal = avgBrowDist / avgEyeWidth;
 
-    // Observable Hunter Eyes Index formula (0-100)
+    // Observable Hunter Eyes Index formula (COMMUNITY ONLY)
     let hunterEyesVal = 70;
     hunterEyesVal += (avgCanthalTilt >= 3.0 ? 12 : (avgCanthalTilt >= 1.0 ? 5 : -10));
     hunterEyesVal -= Math.min(25, scleralShowMm * 20);
@@ -150,6 +154,7 @@ class Morphometry2DEngine {
     const lowerLipH = Math.abs(lowerLipBottom.y - lipLineMid.y) || 1;
     const lipRatioVal = lowerLipH / upperLipH;
 
+
     // =============================================================
     // 5. JAW & MANDIBULAR ARCHITECTURE
     // =============================================================
@@ -161,16 +166,9 @@ class Morphometry2DEngine {
     const magR = Math.hypot(vecR.x, vecR.y);
     const mandibularTaperVal = (Math.acos(Math.max(-1, Math.min(1, dot / (magL * magR || 1)))) * 180) / Math.PI;
 
-    // Estimated Gonial Angle & Ramus from frontal geometry + depth cues
-    const estimatedGonialAngle = gender === 'male' ? Math.max(105, Math.min(128, 110 + (mandibularTaperVal - 95) * 0.45))
-                                                   : Math.max(115, Math.min(135, 120 + (mandibularTaperVal - 105) * 0.40));
-    const estimatedRamusIndex = gender === 'male' ? Math.max(0.60, Math.min(0.88, 0.72 + (jawCheekRatioVal - 0.85) * 0.8))
-                                                  : Math.max(0.55, Math.min(0.78, 0.64 + (jawCheekRatioVal - 0.78) * 0.7));
-
     // =============================================================
     // 6. SECONDARY SEXUAL DIMORPHISM & MASCULINITY / FEMININITY
     // =============================================================
-    // Masculinity factors: high fWHR, low compact brow, square jaw angle, high jaw/cheek ratio, thin upper lip
     let mascScore = 50;
     if (fwhrVal >= 1.95) mascScore += 12; else if (fwhrVal < 1.80) mascScore -= 10;
     if (orbitalCompactnessVal <= 0.38) mascScore += 12; else if (orbitalCompactnessVal > 0.48) mascScore -= 10;
@@ -180,14 +178,14 @@ class Morphometry2DEngine {
     const masculinityVal = Math.max(10, Math.min(98, mascScore));
 
     // =============================================================
-    // 7. BIOLOGICAL YOUTHFULNESS & PERCEIVED AGE ESTIMATE
+    // 7. VISUAL YOUTHFULNESS & PERCEIVED FACIAL AGE ESTIMATE
     // =============================================================
-    let youthScore = 80;
-    if (scleralShowMm > 0.4) youthScore -= 8;
-    if (philtrumChinRatioVal < 1.8 && gender === 'male') youthScore -= 5;
-    // Perceived age offset from standard young adult baseline (25yo)
-    const perceivedAgeOffset = Math.round((78 - youthScore) * 0.25);
-    const perceivedAgeEstimate = Math.max(18, Math.min(55, 25 + perceivedAgeOffset));
+    let youthScore = 78;
+    if (scleralShowMm > 0.4) youthScore -= 7;
+    if (philtrumChinRatioVal < 1.8 && gender === 'male') youthScore -= 4;
+    
+    // Perceived visual age (calibrated around 24 young adult baseline, strictly positive 18–50)
+    const perceivedAgeYears = Math.max(18, Math.min(50, 24 + Math.round((75 - youthScore) * 0.25)));
 
     // =============================================================
     // EVALUATE ALL METRICS AGAINST POPULATION REFERENCE DB
@@ -198,8 +196,14 @@ class Morphometry2DEngine {
       // Craniofacial
       fwhr: evalParam('fwhr', fwhrVal),
       midfaceRatio: evalParam('midfaceRatio', midfaceRatioVal),
-      thirds: evalParam('facialThirdsDev', devThirds),
-      fifths: evalParam('facialFifthsDev', devFifths),
+      thirds: {
+        ...evalParam('facialThirdsDev', devThirds),
+        referenceRange: '30% – 36% each (1:1:1)'
+      },
+      fifths: {
+        ...evalParam('facialFifthsDev', devFifths),
+        referenceRange: '18% – 22% each (1:1:1:1:1)'
+      },
       jawCheekRatio: evalParam('jawCheekRatio', jawCheekRatioVal),
       foreheadFaceRatio: evalParam('foreheadFaceRatio', foreheadFaceRatioVal),
       chinFaceRatio: evalParam('chinFaceRatio', chinFaceRatioVal),
@@ -212,7 +216,21 @@ class Morphometry2DEngine {
       palpebralRatio: evalParam('palpebralRatio', palpebralRatioVal),
       intercanthalIndex: evalParam('intercanthalIndex', intercanthalIndexVal),
       orbitalCompactness: evalParam('orbitalCompactness', orbitalCompactnessVal),
-      hunterEyes: evalParam('hunterEyesScore', hunterEyesVal),
+
+      // Hunter Eyes (COMMUNITY ONLY - No Academic Z-score)
+      hunterEyes: {
+        id: 'hunterEyes',
+        nameEn: 'Hunter Eyes Composite Index',
+        nameRu: 'Индекс Hunter Eyes (Сообщество)',
+        rawVal: hunterEyesVal,
+        score100: Math.round(hunterEyesVal),
+        status: 'MEASURED',
+        domain: 'COMMUNITY',
+        zScore: null,
+        percentile: null,
+        referenceRange: '75 – 95 (Community Tier)',
+        confidence: 88
+      },
 
       // Brows
       browThickness: evalParam('browThickness', browThicknessVal),
@@ -221,44 +239,39 @@ class Morphometry2DEngine {
       // Nose
       nasalWidthRatio: evalParam('nasalWidthRatio', nasalWidthRatioVal),
       nasalLengthRatio: evalParam('nasalLengthRatio', nasalLengthRatioVal),
-      nasolabialAngle: evalParam('nasolabialAngle', gender === 'male' ? 98.0 : 104.0),
 
       // Lips
       lipRatio: evalParam('lipRatio', lipRatioVal),
       mouthWidthRatio: evalParam('mouthWidthRatio', mouthWidthRatioVal),
 
-      // Jaw & Chin
-      gonialAngle: evalParam('gonialAngle', estimatedGonialAngle),
-      ramusIndex: evalParam('ramusIndex', estimatedRamusIndex),
+      // Jaw & Dimorphism
       mandibularTaper: evalParam('mandibularTaper', mandibularTaperVal),
-      chinProjection: evalParam('chinProjection', gender === 'male' ? 1.5 : 0.5),
-
-      // Dimorphism & Age
       masculinity: evalParam('masculinityIndex', masculinityVal),
       youthfulness: evalParam('youthfulnessIndex', youthScore)
     };
 
-    // Sub-module overall scores
+    // Sub-module overall scores (Arithmetic mean of normalized metric scores 0–100)
     const subScores = {
       craniofacial: Math.round(
-        metrics.fwhr.score100 * 0.25 +
-        metrics.midfaceRatio.score100 * 0.20 +
-        metrics.thirds.score100 * 0.15 +
-        metrics.fifths.score100 * 0.15 +
-        metrics.jawCheekRatio.score100 * 0.15 +
-        metrics.philtrumChinRatio.score100 * 0.10
+        (metrics.fwhr.score100 +
+         metrics.midfaceRatio.score100 +
+         metrics.thirds.score100 +
+         metrics.fifths.score100 +
+         metrics.jawCheekRatio.score100 +
+         metrics.philtrumChinRatio.score100) / 6
       ),
       periorbital: Math.round(
-        metrics.canthalTilt.score100 * 0.25 +
-        metrics.palpebralRatio.score100 * 0.25 +
-        metrics.scleralShow.score100 * 0.20 +
-        metrics.intercanthalIndex.score100 * 0.15 +
-        metrics.orbitalCompactness.score100 * 0.15
+        (metrics.canthalTilt.score100 +
+         metrics.palpebralRatio.score100 +
+         metrics.scleralShow.score100 +
+         metrics.intercanthalIndex.score100 +
+         metrics.orbitalCompactness.score100) / 5
       ),
       dimorphism: masculinityVal,
       youthfulness: youthScore,
-      perceivedAge: perceivedAgeEstimate
+      perceivedAge: perceivedAgeYears
     };
+
 
     return {
       subScores,
@@ -274,7 +287,7 @@ class Morphometry2DEngine {
         hunterEyesScore: Math.round(hunterEyesVal),
         mandibularTaperDeg: mandibularTaperVal.toFixed(1),
         lipRatio: lipRatioVal.toFixed(2),
-        perceivedAge: perceivedAgeEstimate
+        perceivedAge: perceivedAgeYears
       }
     };
   }
