@@ -1,14 +1,13 @@
 /**
- * HSAY - Population Reference Database & Statistical Engine
+ * HSAY - Morphometry Reference Anchors & Scoring Engine
  * 
  * Methodological Architecture:
  * 1. For every metric:
- *    raw value → definition → population reference (mean μ, SD σ) → Z-score → percentile → normalized score (0–100)
- * 2. Strict separation of 3 mathematical concepts:
- *    - Z-Score: deviation from reference population in standard deviations ((x - μ) / σ).
- *    - Percentile: cumulative population position (P0.1 to P99.9).
- *    - Morphometric Score (0–100): continuous domain score based on empirical attractiveness/harmony functions.
- * 3. Sourced strictly from published anthropometric and cephalometric literature:
+ *    raw value → definition → fixed reference interval → transparent heuristic score (0–100).
+ * 2. The intervals are code anchors, not a validation dataset.  This module
+ *    deliberately does not produce a population percentile, attractiveness
+ *    prediction, or a diagnosis.
+ * 3. Literature is retained as background for metric definitions:
  *    - Farkas LG (1994), Craniofacial Norms in Caucasians (N=600)
  *    - Proffit WR (2018), Contemporary Orthodontics Cephalometric Standards (N=450)
  *    - Subtelny JD (1959), Longitudinal Soft-Tissue Cephalometric Analysis (N=300)
@@ -124,9 +123,9 @@ class PopulationReferenceDB {
     },
     philtrumChinRatio: {
       id: 'philtrumChinRatio',
-      nameEn: 'Philtrum-to-Chin Ratio (Subnasale-Ls : Li-Me)',
+      nameEn: 'Chin-to-Philtrum Ratio (Li-Me : Subnasale-Ls)',
       nameRu: 'Соотношение фильтрума и подбородка',
-      definitionEn: 'Subnasale-to-upper lip height (sn-ls) compared to lower lip-to-menton (li-me)',
+      definitionEn: 'Lower lip-to-menton height (li-me) divided by subnasale-to-upper lip height (sn-ls)',
       definitionRu: 'Длина фильтрума (sn-ls) в соотношении к высоте подбородка (li-me)',
       domain: 'SCIENTIFIC',
       status: 'MEASURED',
@@ -466,10 +465,9 @@ class PopulationReferenceDB {
 
   /**
    * Unified Continuous Normalization Function
-   * Maps any raw metric measurement to:
-   * 1. Z-Score (deviation from reference population in SDs)
-   * 2. Percentile (cumulative normal position P0.1 to P99.9)
-   * 3. Normalized Metric Score 0–100 (smooth continuous Gaussian/exponential function)
+   * Maps any raw metric measurement to a transparent proximity score.
+   * It intentionally withholds z-scores and percentiles because this project
+   * has no calibration cohort for its image-derived measurements.
    */
   static evaluate(metricId, value, gender = 'universal') {
     const entry = this.database[metricId];
@@ -496,9 +494,8 @@ class PopulationReferenceDB {
     }
 
     const dist = entry[gender] || entry['universal'];
-    const hasZScore = entry.domain === 'SCIENTIFIC' && entry.status === 'MEASURED';
-    const zScore = hasZScore ? parseFloat(((value - dist.mean) / (dist.sd || 1e-4)).toFixed(2)) : null;
-    const percentile = hasZScore ? Math.round(this.zToPercentile(zScore)) : null;
+    const zScore = null;
+    const percentile = null;
 
     // Continuous smooth scoring around reference center without artificial flat saturation
     const refCenter = (dist.refMin + dist.refMax) / 2;
@@ -532,7 +529,8 @@ class PopulationReferenceDB {
   }
 
   /**
-   * Computes standard normal CDF percentile from Z-Score (strictly bounded at P0.1 - P99.9)
+   * Kept for backwards compatibility with saved reports. New reports do not
+   * call this function because percentile output is intentionally disabled.
    */
   static zToPercentile(z) {
     if (z === null || isNaN(z)) return null;

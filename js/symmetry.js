@@ -118,7 +118,8 @@ class SymmetryAnalyzer {
     const scoreStructuralFA = Math.max(20, Math.min(99, Math.round(100 - relOverallDiffPct * 16.0)));
 
     // 4. Texture Symmetry Analysis
-    let scoreTextureSymmetry = 88;
+    let scoreTextureSymmetry = null;
+    let textureStatus = 'NOT_OBSERVABLE';
     if (canvas) {
       try {
         const ctx = canvas.getContext('2d');
@@ -142,13 +143,18 @@ class SymmetryAnalyzer {
         }
         const avgPixDiff = diffSum / (countPix || 1);
         scoreTextureSymmetry = Math.max(30, Math.min(99, Math.round(100 - avgPixDiff * 0.9)));
+        textureStatus = 'ESTIMATED';
       } catch (e) {
-        scoreTextureSymmetry = 88;
+        // An unreadable canvas is an unavailable texture measurement, not an
+        // average-looking texture score.
+        scoreTextureSymmetry = null;
       }
     }
 
+    const symmetryParts = [scoreStructuralFA, scoreMidline, scoreTextureSymmetry]
+      .filter(Number.isFinite);
     const subTotalSymmetry = Math.round(
-      (scoreStructuralFA + scoreMidline + scoreTextureSymmetry) / 3
+      symmetryParts.reduce((sum, score) => sum + score, 0) / symmetryParts.length
     );
 
 
@@ -157,8 +163,8 @@ class SymmetryAnalyzer {
       scoreStructural: scoreStructuralFA,
       scoreTexture: scoreTextureSymmetry,
       scoreMidline,
-      status: 'MEASURED',
-      domain: 'SCIENTIFIC',
+      status: textureStatus === 'ESTIMATED' ? 'ESTIMATED' : 'MEASURED',
+      domain: textureStatus === 'ESTIMATED' ? 'PHOTO PROXY' : 'SCIENTIFIC',
       avgDeviationPx: parseFloat(overallAvgDiff.toFixed(2)),
       midlineDevPx: parseFloat(avgMidlineDevPx.toFixed(1)),
       regionalScores: {
@@ -185,11 +191,11 @@ class SymmetryAnalyzer {
           domain: 'SCIENTIFIC'
         },
         textureSymmetry: {
-          value: `${scoreTextureSymmetry}%`,
+          value: Number.isFinite(scoreTextureSymmetry) ? `${scoreTextureSymmetry}%` : 'Unavailable',
           score: scoreTextureSymmetry,
-          ideal: '> 85% (Photometric Balance)',
-          status: 'MEASURED',
-          domain: 'SCIENTIFIC'
+          ideal: Number.isFinite(scoreTextureSymmetry) ? 'Photo proxy; affected by lighting' : 'No readable image pixels',
+          status: textureStatus,
+          domain: 'PHOTO PROXY'
         },
         eyesEyebrowsScore: Math.round((groupScores.eyes + groupScores.eyebrows) / 2),
         cheeksNoseScore: Math.round((groupScores.midfaceCheeks + groupScores.nose) / 2),

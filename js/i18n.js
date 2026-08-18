@@ -38,7 +38,7 @@ class I18n {
       genderMale: "Male Phenotype",
       genderFemale: "Female Phenotype",
       genderUniversal: "Universal Phenotype",
-      calibrationInfo: "Frankfurt 3D / Lens 85mm Rectified",
+      calibrationInfo: "2D roll alignment; focal length is not inferred",
 
       // Viewport & Toolbar
       viewportFrontal: "Projection: Frontal",
@@ -56,7 +56,7 @@ class I18n {
       toggleAlignment: "Axes & Tilt",
       toggleThirds: "Thirds & Fifths",
       toggleSymmetry: "Symmetry & FA",
-      toggleHunter: "Hunter Eyes Box",
+      toggleHunter: "Eye Geometry Box",
       toggleEline: "Ricketts E-Line",
       toggleCeph: "Angles & Planes",
       toggle3DDepth: "3D Depth Vectors",
@@ -78,57 +78,57 @@ class I18n {
       relNotObserved: "Not Observable",
 
       // 3 Independent Models
-      heroScientificTitle: "Perceived Facial Attractiveness",
-      heroScientificSubtitle: "Research-Informed Model",
-      heroScientificDesc: "Equal-weight multi-domain aggregation (Langlois, Rhodes, Stephen, Cunningham)",
-      heroSexualTitle: "Perceived Facial Sexual Attractiveness",
-      heroSexualSubtitle: "Research-Informed Model",
-      heroSexualDesc: "Equal-weight multi-domain aggregation (Dimorphism, Vitality, Youthfulness, Jaw)",
-      heroPslTitle: "PSL Community Rating",
-      heroPslSubtitle: "Community Metric",
-      heroPslDesc: "Looksmax community standard scale (1.0 – 10.0)",
+      heroScientificTitle: "Facial Structural Balance",
+      heroScientificSubtitle: "Transparent Photo Heuristic",
+      heroScientificDesc: "Explicit weighted geometry and presentation inputs",
+      heroSexualTitle: "Feature Definition & Freshness",
+      heroSexualSubtitle: "Transparent Photo Heuristic",
+      heroSexualDesc: "Selected sex-profile fit, lower-face geometry, eyes and skin presentation",
+      heroPslTitle: "PSL-Inspired Geometry Index",
+      heroPslSubtitle: "Rule-Based Heuristic",
+      heroPslDesc: "Code-defined geometry index (1.0 – 9.0), not a community rank",
 
-      equalWeightBanner: "6 predefined domains · equal-weight aggregation",
+      equalWeightBanner: "Six equal-weight domains · photo-derived heuristic",
 
       scoreOutOf100: "out of 100",
       scoreOutOf10: "out of 10",
-      morphPercentileLabel: "Predicted human-rating percentile:",
-      dimorphPercentileLabel: "Predicted sexual attractiveness percentile:",
-      communityPercentileLabel: "Community percentile:",
-      predictionUncertaintyLabel: "Prediction uncertainty:",
-      modelConfidenceLabel: "Model confidence:",
+      morphPercentileLabel: "Structural-balance index:",
+      dimorphPercentileLabel: "Feature-definition index:",
+      communityPercentileLabel: "Geometry-heuristic status:",
+      predictionUncertaintyLabel: "Photo-sensitivity range:",
+      modelConfidenceLabel: "Photo reliability:",
 
-      badgeEmpirical: "RESEARCH-INFORMED MODEL",
-      badgeDimorphism: "RESEARCH-INFORMED MODEL",
-      badgeCommunity: "COMMUNITY METRIC",
+      badgeEmpirical: "RULE-BASED PHOTO HEURISTIC",
+      badgeDimorphism: "RULE-BASED PHOTO HEURISTIC",
+      badgeCommunity: "NOT A COMMUNITY RANK",
 
       // Potential Card
-      potentialCardTitle: "Hypothetical Appearance Optimization Potential",
-      potentialCardSubtitle: "Estimated theoretical ceiling under comprehensive physical and dermatological optimization (Model Estimate)",
-      potentialModelEstimateTag: "MODEL ESTIMATE (Non-guaranteed)",
-      potentialCurrentLevel: "Current Score",
-      potentialTargetLevel: "Optimization Ceiling",
-      potentialGrowthPts: "pts growth",
+      potentialCardTitle: "Repeat-Photo Upper Bound",
+      potentialCardSubtitle: "Upper photo-sensitivity bound only; not a prediction of maximum appearance or treatment outcome.",
+      potentialModelEstimateTag: "NOT AN APPEARANCE FORECAST",
+      potentialCurrentLevel: "Current index",
+      potentialTargetLevel: "Photo upper bound",
+      potentialGrowthPts: "priority",
 
       // Reserves
       resSkin: "🧪 Skin & Soft-Tissue:",
-      resPeri: "👁️ Periorbital Tone:",
+      resPeri: "👁️ Eye-area geometry:",
       resSym: "⚖️ Symmetry (FA):",
       resJaw: "💪 Jaw & Posture:",
-      resNeck: "📐 Neck Posture (Chin Tucks):",
-      resMewing: "👅 Mewing & E-Line:",
+      resNeck: "📐 Neck posture on the repeat photo:",
+      resMewing: "👅 Profile and E-Line check:",
 
       // Matrix & Structure
-      matrixHeaderTitle: "Predefined Multi-Domain Aggregation (DeepScan)",
-      matrixDimorphLabel: "1. Secondary Sexual Dimorphism (16.7%)",
-      matrixAnthroLabel: "2. Craniofacial & Sagittal Architecture (16.7%)",
-      matrixSkinLabel: "3. Skin & Soft-Tissue Appearance (16.7%)",
-      matrixSymLabel: "4. Fluctuating Symmetry (16.7%)",
+      matrixHeaderTitle: "Cross-view Feature Summary",
+      matrixDimorphLabel: "1. Selected sex-profile fit (Model B input)",
+      matrixAnthroLabel: "2. Craniofacial proportions (Model A: 16.7%)",
+      matrixSkinLabel: "3. Skin and soft-tissue photo proxy (Model A: 16.7%)",
+      matrixSymLabel: "4. Bilateral balance (Model A: 16.7%)",
 
       radarAttractivenessTitle: "Facial Harmony & Proportions Radar",
       radarDimorphTitle: "Morphology & Cephalometrics Radar",
       activeModuleStructure: "Active Module Structure",
-      academicPercentilesDesc: "Anthropometric Z-Scores and population percentiles calculated across validated parameters:",
+      academicPercentilesDesc: "Transparent image-derived module scores. Fixed reference intervals are code anchors, not population percentiles.",
 
       // Sections & Module Cards
       secCraniofacial: "Craniofacial Anthropometry & Proportions",
@@ -161,7 +161,7 @@ class I18n {
       metricPalpebral: "Palpebral Aspect Ratio",
       metricIntercanthal: "Intercanthal Index (1:1)",
       metricOrbitalComp: "Orbital Compactness",
-      metricHunterEyes: "Hunter Eyes Index (Community)",
+      metricHunterEyes: "Eye Geometry Composite (photo proxy)",
       metricBrowThick: "Brow Thickness",
       metricBrowCurv: "Brow Curvature & Arch",
       metricNasalWidth: "Nasal Width Ratio",
@@ -219,7 +219,7 @@ class I18n {
 
       // Welcome Card
       welcomeTitle: "Research-Informed Multi-Domain Facial Analysis",
-      welcomeDesc: "Advanced multi-stage pipeline combining 2D craniofacial anthropometry, 90° sagittal cephalometrics, OpenCV CIELAB dermatological analysis, and equal-weight aggregation across 6 predefined morphological and perceptual domains."
+      welcomeDesc: "Transparent local pipeline combining 2D facial proportions, profile proxies, image-based skin presentation and explicitly equal-weighted Model A domains. It is not a complete assessment of a person or a population ranking."
     },
 
     ru: {
@@ -254,7 +254,7 @@ class I18n {
       genderMale: "Мужской фенотип",
       genderFemale: "Женский фенотип",
       genderUniversal: "Универсальный",
-      calibrationInfo: "Франкфурт 3D / Lens 85mm калибровка",
+      calibrationInfo: "2D-выравнивание наклона; фокусное расстояние не определяется",
 
       // Viewport & Toolbar
       viewportFrontal: "Проекция: Анфас",
@@ -272,7 +272,7 @@ class I18n {
       toggleAlignment: "Оси & Тилт",
       toggleThirds: "Трети & Пятые",
       toggleSymmetry: "Симметрия & FA",
-      toggleHunter: "Hunter Eyes бокс",
+      toggleHunter: "Контур геометрии глаз",
       toggleEline: "Линия Риккетса (E-Line)",
       toggleCeph: "Углы & Плоскости",
       toggle3DDepth: "3D векторы глубины",
@@ -294,57 +294,57 @@ class I18n {
       relNotObserved: "Не поддаются наблюдению",
 
       // 3 Independent Models
-      heroScientificTitle: "Воспринимаемая привлекательность лица",
-      heroScientificSubtitle: "Исследовательская модель",
-      heroScientificDesc: "Равновесная агрегация 6 предопределенных доменов (Langlois, Rhodes, Stephen)",
-      heroSexualTitle: "Воспринимаемая сексуальная привлекательность",
-      heroSexualSubtitle: "Исследовательская модель",
-      heroSexualDesc: "Равновесная агрегация 6 доменов (Диморфизм, Витальность, Молодость, Челюсть)",
-      heroPslTitle: "PSL Community Rating",
-      heroPslSubtitle: "Метрика сообщества",
-      heroPslDesc: "Шкала сообщества Looksmax (1.0 – 10.0)",
+      heroScientificTitle: "Структурный баланс лица",
+      heroScientificSubtitle: "Прозрачная фото-эвристика",
+      heroScientificDesc: "Явные веса геометрии и признаков на фото",
+      heroSexualTitle: "Выраженность черт и свежесть",
+      heroSexualSubtitle: "Прозрачная фото-эвристика",
+      heroSexualDesc: "Выбранный половой профиль, нижняя треть лица, глаза и вид кожи",
+      heroPslTitle: "PSL-подобный индекс геометрии",
+      heroPslSubtitle: "Эвристика на правилах",
+      heroPslDesc: "Индекс геометрии 1.0–9.0, заданный кодом; не рейтинг сообщества",
 
-      equalWeightBanner: "6 предопределенных доменов · равновесная агрегация",
+      equalWeightBanner: "Шесть доменов с равными весами · фото-эвристика",
 
       scoreOutOf100: "из 100",
       scoreOutOf10: "из 10",
-      morphPercentileLabel: "Перцентиль восприятия людьми:",
-      dimorphPercentileLabel: "Перцентиль сексуальной привлекательности:",
-      communityPercentileLabel: "Перцентиль сообщества Looksmax:",
-      predictionUncertaintyLabel: "Погрешность оценки:",
-      modelConfidenceLabel: "Уверенность модели:",
+      morphPercentileLabel: "Индекс структурного баланса:",
+      dimorphPercentileLabel: "Индекс выраженности черт:",
+      communityPercentileLabel: "Статус геометрической эвристики:",
+      predictionUncertaintyLabel: "Чувствительность к качеству фото:",
+      modelConfidenceLabel: "Надёжность фото:",
 
-      badgeEmpirical: "ИССЛЕДОВАТЕЛЬСКАЯ МОДЕЛЬ",
-      badgeDimorphism: "ИССЛЕДОВАТЕЛЬСКАЯ МОДЕЛЬ",
-      badgeCommunity: "COMMUNITY METRIC",
+      badgeEmpirical: "ФОТО-ЭВРИСТИКА НА ПРАВИЛАХ",
+      badgeDimorphism: "ФОТО-ЭВРИСТИКА НА ПРАВИЛАХ",
+      badgeCommunity: "НЕ РЕЙТИНГ СООБЩЕСТВА",
 
       // Potential Card
-      potentialCardTitle: "Оценка гипотетического потенциала оптимизации",
-      potentialCardSubtitle: "Расчетный теоретический потолок при комплексной физической и дерматологической оптимизации (Оценка модели)",
-      potentialModelEstimateTag: "ОЦЕНКА МОДЕЛИ (Не гарантированный)",
-      potentialCurrentLevel: "Текущий уровень",
-      potentialTargetLevel: "Потолок оптимизации",
-      potentialGrowthPts: "pts роста",
+      potentialCardTitle: "Верхняя граница повторного фото",
+      potentialCardSubtitle: "Только верхняя граница чувствительности к фото; не прогноз максимума внешности или результата лечения.",
+      potentialModelEstimateTag: "НЕ ПРОГНОЗ ВНЕШНОСТИ",
+      potentialCurrentLevel: "Текущий индекс",
+      potentialTargetLevel: "Верхняя граница фото",
+      potentialGrowthPts: "приоритет",
 
       // Reserves
       resSkin: "🧪 Кожа & Мягкие ткани:",
-      resPeri: "👁️ Тонус век (Hunter Eyes):",
+      resPeri: "👁️ Геометрия области глаз:",
       resSym: "⚖️ Симметрия (FA) & Жевание:",
       resJaw: "💪 Массетеры & Осанка:",
-      resNeck: "📐 Осанка шеи (Chin Tucks):",
-      resMewing: "👅 Mewing & Линия E-Line:",
+      resNeck: "📐 Положение шеи на повторном фото:",
+      resMewing: "👅 Проверка профиля и E-Line:",
 
       // Matrix & Structure
-      matrixHeaderTitle: "Равновесная междоменная агрегация (DeepScan)",
-      matrixDimorphLabel: "1. Вторичный половой диморфизм (16.7%)",
-      matrixAnthroLabel: "2. Краниофациальная архитектура (16.7%)",
-      matrixSkinLabel: "3. Внешний вид кожи и мягких тканей (16.7%)",
-      matrixSymLabel: "4. Флуктуирующая симметрия (16.7%)",
+      matrixHeaderTitle: "Сводка признаков из двух ракурсов",
+      matrixDimorphLabel: "1. Выбранный половой профиль (вход Model B)",
+      matrixAnthroLabel: "2. Краниофациальные пропорции (Model A: 16.7%)",
+      matrixSkinLabel: "3. Фото-прокси кожи и мягких тканей (Model A: 16.7%)",
+      matrixSymLabel: "4. Билатеральный баланс (Model A: 16.7%)",
 
       radarAttractivenessTitle: "Радар гармонии и пропорций лица",
       radarDimorphTitle: "Радар морфологии и цефалометрии",
       activeModuleStructure: "Структура активного модуля",
-      academicPercentilesDesc: "Антропометрический Z-Score и популяционный перцентиль по валидированным параметрам:",
+      academicPercentilesDesc: "Прозрачные баллы модулей по изображению. Фиксированные интервалы — ориентиры кода, а не популяционные процентили.",
 
       // Sections & Module Cards
       secCraniofacial: "Краниофациальная антропометрия и пропорции",
@@ -377,7 +377,7 @@ class I18n {
       metricPalpebral: "Индекс глазной щели (Palpebral)",
       metricIntercanthal: "Межглазной индекс (1:1)",
       metricOrbitalComp: "Компактность глазницы",
-      metricHunterEyes: "Индекс Hunter Eyes (Сообщество)",
+      metricHunterEyes: "Композит геометрии глаз (фото-прокси)",
       metricBrowThick: "Толщина бровей",
       metricBrowCurv: "Изгиб и арка бровей",
       metricNasalWidth: "Ширина основания носа",
@@ -435,7 +435,7 @@ class I18n {
 
       // Welcome Card
       welcomeTitle: "Исследовательская многодоменная модель анализа лица",
-      welcomeDesc: "Многоступенчатый вычислительный конвейер, объединяющий 2D краниофациальную антропометрию, 90° цефалометрию, OpenCV CIELAB дерматологический анализ и равновесную агрегацию 6 предопределенных морфологических и перцептивных доменов."
+      welcomeDesc: "Прозрачный локальный конвейер: 2D-пропорции лица, прокси профиля, вид кожи на изображении и шесть явно равновесных доменов Model A. Это не полная оценка человека и не популяционный рейтинг."
     }
   };
 

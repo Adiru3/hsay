@@ -2,12 +2,13 @@
  * Stage 1 / Block 6: Algorithmic Calibration & Preprocessing Engine
  * Implements:
  * 1. Frankfurt Horizontal Plane Normalization (Roll / Pitch / Yaw 3D Pose Correction).
- * 2. Lens Rectification Simulation (Wide Angle 24mm -> Standard 85-105mm Portrait Perspective).
+ * 2. Image-scale normalisation. A single image cannot be reprojected to a
+ *    different physical focal length without camera calibration and depth.
  * 3. Robust Sagittal Profile 90° Centering and Landmark Transformation.
  */
 class FaceAligner {
   /**
-   * Performs full 3D alignment, lens rectification, and canvas matrix transformation
+   * Performs roll and scale alignment plus canvas matrix transformation.
    * @param {HTMLCanvasElement} srcCanvas - Source image canvas
    * @param {Array} landmarks - Raw MediaPipe 478 3D landmarks
    * @param {boolean} [isProfile=false] - True if processing sagittal 90° profile
@@ -72,7 +73,7 @@ class FaceAligner {
     const targetCenter = { x: 500, y: 420 };
 
     // -------------------------------------------------------------
-    // 2. Lens Rectification Simulation (85mm focal equivalent)
+    // 2. Roll and scale normalisation. This is not lens rectification.
     // -------------------------------------------------------------
     ctx.fillStyle = '#090d16';
     ctx.fillRect(0, 0, TARGET_SIZE, TARGET_SIZE);
@@ -116,9 +117,9 @@ class FaceAligner {
         yawDeg: parseFloat(yawDeg.toFixed(1))
       },
       calibration: {
-        lensRectified: true,
-        focalEquivalent: '85 mm',
-        frankfurtAligned: true,
+        lensRectified: false,
+        focalEquivalent: 'Not inferred from a single image',
+        frankfurtAligned: false,
         scale: parseFloat(scale.toFixed(3))
       }
     };
@@ -179,10 +180,9 @@ class FaceAligner {
       alignedCanvas,
       alignedLandmarks,
       headPose: { rollDeg: 0, pitchDeg: 0, yawDeg: 90 },
-      calibration: { lensRectified: true, focalEquivalent: '85 mm', frankfurtAligned: true, scale: parseFloat(scale.toFixed(3)) }
+      calibration: { lensRectified: false, focalEquivalent: 'Not inferred from a single image', frankfurtAligned: false, scale: parseFloat(scale.toFixed(3)) }
     };
   }
 }
 
 window.FaceAligner = FaceAligner;
-

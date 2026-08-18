@@ -299,30 +299,30 @@ class Visualizer {
         'Facial Convexity', 'Nasolabial Angle', 'Cervicomental Angle'
       ];
       dataScores = [
-        m.gonialAngle.score100 || m.gonialAngle.score || 80,
-        m.ramusIndex.score100 || m.ramusIndex.score || 80,
-        m.eline.score100 || m.eline.score || 80,
-        m.convexity.score100 || m.convexity.score || 80,
-        m.nasolabial.score100 || m.nasolabial.score || 80,
-        m.cervicomental.score100 || m.cervicomental.score || 80
+        m.gonialAngle.score100 ?? m.gonialAngle.score ?? 0,
+        m.ramusIndex.score100 ?? m.ramusIndex.score ?? 0,
+        m.eline.score100 ?? m.eline.score ?? 0,
+        m.convexity.score100 ?? m.convexity.score ?? 0,
+        m.nasolabial.score100 ?? m.nasolabial.score ?? 0,
+        m.cervicomental.score100 ?? m.cervicomental.score ?? 0
       ];
     } else if (report.viewMode === 'composite') {
 
       const sm = report.scientificMatrix;
       labels = lang === 'ru' ? [
-        'Половой диморфизм', 'Краниофациальная база', 'Качество кожи & Жир',
-        'Симметрия & FA', 'Челюстной каркас', 'Гармония лица'
+        'Выраженность черт', 'Краниофациальные пропорции', 'Кожа и мягкие ткани',
+        'Билатеральный баланс', 'Профиль челюсти', 'Гармония признаков'
       ] : [
-        'Sexual Dimorphism', 'Craniofacial Base', 'Skin & Soft Tissue',
-        'Symmetry & FA', 'Jaw Architecture', 'Facial Harmony'
+        'Feature Definition', 'Craniofacial Proportions', 'Skin & Soft Tissue',
+        'Bilateral Balance', 'Jaw Profile', 'Feature Harmony'
       ];
       dataScores = [
-        sm.dimorphism.score || 80,
-        sm.anthropometry.score || 80,
-        sm.skinHealth.score || 80,
-        sm.symmetry.score || 80,
-        (report.profileReport && report.profileReport.modules.cephalometrics.metrics.gonialAngle.score) || 85,
-        (report.frontalReport && report.frontalReport.harmony) || 88
+        sm.dimorphism.score ?? 0,
+        sm.anthropometry.score ?? 0,
+        sm.skinHealth.score ?? 0,
+        sm.symmetry.score ?? 0,
+        report.profileReport?.modules?.cephalometrics?.metrics?.gonialAngle?.score ?? 0,
+        report.frontalReport?.harmony ?? 0
       ];
     } else {
       // Frontal default
@@ -335,12 +335,12 @@ class Visualizer {
         'Symmetry FA', 'Dimorphism', 'Harmony'
       ];
       dataScores = [
-        m.anthro.score || 80,
-        m.periorbital.score || 80,
-        m.skin.score || 80,
-        m.symmetry.score || 80,
-        m.dimorphism.score || 80,
-        report.harmony || 85
+        m.anthro.score ?? 0,
+        m.periorbital.score ?? 0,
+        m.skin.score ?? 0,
+        m.symmetry.score ?? 0,
+        m.dimorphism.score ?? 0,
+        report.harmony ?? 0
       ];
     }
 

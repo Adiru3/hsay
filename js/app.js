@@ -1,7 +1,7 @@
 /**
  * HSAY (How sexy are you?) - Main Application Orchestrator
  * Implements full 14-stage pipeline:
- * Photo -> QC -> Detection -> Segmentation -> Head Pose -> Lens/Frankfurt 85mm -> Landmarks ->
+ * Photo -> QC -> Detection -> Segmentation -> Head Pose -> roll alignment -> Landmarks ->
  * 2D Morphometry -> Skin CV -> 3D Reconstruction -> Population Comparison -> Feature Integration ->
  * Whole-Face Embedding -> 3 Independent Models (Scientific, Sexual, PSL) -> Reliability & Uncertainty.
  */
@@ -558,12 +558,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(sourceImage, 0, 0);
 
-    updateProgress(35, I18n.currentLang === 'ru' ? 'Коррекция оптики 85mm & Франкфуртская плоскость...' : 'Lens 85mm Rectification & Frankfurt Plane Normalization...');
+    updateProgress(35, I18n.currentLang === 'ru' ? 'Выравнивание наклона и положения головы...' : 'Aligning roll and head pose...');
 
     const alignedResult = FaceAligner.alignFace(canvas, rawLandmarks, currentMode === 'profile');
 
     updateProgress(50, I18n.currentLang === 'ru' ? 'Контроль качества снимка & Резкость Лапласиана...' : 'Image Quality Control & Laplacian Sharpness...');
-    const qc = QualityControlEngine.assessQuality(canvas, rawLandmarks, alignedResult.headPose);
+    const qc = currentMode === 'profile'
+      ? QualityControlEngine.assessProfileQuality(canvas, rawLandmarks, alignedResult.headPose)
+      : QualityControlEngine.assessQuality(canvas, rawLandmarks, alignedResult.headPose);
 
     if (currentMode === 'frontal') {
       state.frontal.image = sourceImage.src;
@@ -625,7 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
       state.frontal.wholeFace = wholeFace;
 
       updateProgress(95, I18n.currentLang === 'ru' ? 'Синтез 3 независимых моделей оценки...' : 'Synthesizing 3 Independent Evaluation Models...');
-      state.frontal.report = AttractivenessScorer.calculateFrontal(morph2D, morph2D, skinRes, symRes, null, morph3D, qc, wholeFace);
+      state.frontal.report = AttractivenessScorer.calculateFrontal(morph2D, null, skinRes, symRes, null, morph3D, qc, wholeFace);
 
       if (currentMode === 'frontal') {
         displayFrontalView();
@@ -650,7 +652,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.profile.facingLeft = cephRes.facingLeft;
       }
 
-      state.profile.report = AttractivenessScorer.calculateProfile(cephRes, null, qc);
+      state.profile.report = AttractivenessScorer.calculateProfile(cephRes, qc);
 
       if (currentMode === 'profile') {
         displayProfileView();
@@ -666,7 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cephRes = CephalometricsAnalyzer.analyzeFromCustomPoints(state.profile.customPoints, currentGender, state.profile.facingLeft);
     const qc = state.profile.qc;
 
-    state.profile.report = AttractivenessScorer.calculateProfile(cephRes, null, qc);
+    state.profile.report = AttractivenessScorer.calculateProfile(cephRes, qc);
     displayProfileView(false);
   }
 
@@ -693,6 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderQualityBanner(report);
     renderReliabilityMeter(report);
     renderPotentialCard(report);
+    renderCoverageMap(report);
 
     document.getElementById('radarTitle').textContent = I18n.t('radarAttractivenessTitle');
     visualizer.renderRadarChart('radarChart', report);
@@ -724,6 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderQualityBanner(report);
     renderReliabilityMeter(report);
     renderPotentialCard(report);
+    renderCoverageMap(report);
 
     document.getElementById('radarTitle').textContent = I18n.t('radarDimorphTitle');
     visualizer.renderRadarChart('radarChart', report);
@@ -737,6 +741,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!state.frontal.report && !state.profile.report) {
       welcomeState.classList.remove('hidden');
       resultsDashboard.classList.add('hidden');
+      return;
+    }
+
+    // A composite is meaningful only when both controlled views exist.
+    if (!state.frontal.report || !state.profile.report) {
+      if (state.frontal.report) displayFrontalView();
+      else displayProfileView();
       return;
     }
 
@@ -766,6 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderQualityBanner(compositeReport);
     renderReliabilityMeter(compositeReport);
     renderPotentialCard(compositeReport);
+    renderCoverageMap(compositeReport);
 
     document.getElementById('radarTitle').textContent = I18n.t('radarAttractivenessTitle');
     visualizer.renderRadarChart('radarChart', compositeReport);
@@ -786,8 +798,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // -----------------------------------------------------------------
   function renderHeroCards(report) {
     const lang = I18n.currentLang;
+    const heroTitles = document.querySelectorAll('.model-hero-title');
+    const heroSubtitles = document.querySelectorAll('.model-hero-sub');
+    if (heroTitles.length >= 3 && heroSubtitles.length >= 3) {
+      heroTitles[0].textContent = lang === 'ru' ? 'Структурный баланс лица' : 'Facial Structural Balance';
+      heroSubtitles[0].textContent = lang === 'ru' ? 'Прозрачная фото-эвристика' : 'Transparent photo heuristic';
+      heroTitles[1].textContent = lang === 'ru' ? 'Выраженность черт и свежесть' : 'Feature Definition & Freshness';
+      heroSubtitles[1].textContent = lang === 'ru' ? 'Прозрачная фото-эвристика' : 'Transparent photo heuristic';
+      heroTitles[2].textContent = lang === 'ru' ? 'PSL-подобный индекс геометрии' : 'PSL-Inspired Geometry Index';
+      heroSubtitles[2].textContent = lang === 'ru' ? 'Не является социальным рейтингом' : 'Not a social ranking';
+    }
 
-    // 1. Scientific Facial Attractiveness Card (Model A)
+    // 1. Structural-balance heuristic (Model A)
     const sciScore = report.scientific.score;
     const sciValEl = document.getElementById('sciScoreVal');
     if (sciValEl) sciValEl.textContent = sciScore;
@@ -800,21 +822,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sciPercentileEl = document.getElementById('sciPercentileText');
     if (sciPercentileEl) {
-      sciPercentileEl.textContent = `${I18n.t('morphPercentileLabel')} ${report.scientific.percentile}% (Z: ${report.scientific.zScore > 0 ? '+' : ''}${report.scientific.zScore})`;
+      sciPercentileEl.textContent = lang === 'ru'
+        ? 'Индекс структурного баланса: прозрачная rule-based эвристика'
+        : 'Structural balance index: transparent rule-based heuristic';
     }
 
     const sciUncertaintyEl = document.getElementById('sciUncertaintyText');
     if (sciUncertaintyEl) {
       const uncVal = report.scientific.uncertainty ? report.scientific.uncertainty.formatted : '±6';
-      sciUncertaintyEl.textContent = `${I18n.t('predictionUncertaintyLabel')} ${uncVal}`;
+      sciUncertaintyEl.textContent = `${lang === 'ru' ? 'Чувствительность к качеству фото:' : 'Photo-sensitivity range:'} ${uncVal}`;
     }
 
     const sciConfidenceEl = document.getElementById('sciConfidenceText');
     if (sciConfidenceEl) {
-      sciConfidenceEl.textContent = `${I18n.t('modelConfidenceLabel')} ${report.scientific.confidence}%`;
+      sciConfidenceEl.textContent = `${lang === 'ru' ? 'Надёжность фото:' : 'Photo reliability:'} ${report.scientific.confidence}%`;
     }
 
-    // 2. Facial Sexual Attractiveness Card (Model B)
+    // 2. Feature-definition heuristic (Model B)
     const sexScore = report.sexual.score;
     const sexValEl = document.getElementById('sexScoreVal');
     if (sexValEl) sexValEl.textContent = sexScore;
@@ -827,16 +851,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sexPercentileEl = document.getElementById('sexPercentileText');
     if (sexPercentileEl) {
-      sexPercentileEl.textContent = `${I18n.t('dimorphPercentileLabel')} ${report.sexual.percentile}%`;
+      sexPercentileEl.textContent = lang === 'ru'
+        ? 'Индекс выраженности черт и визуальной свежести'
+        : 'Feature definition and visual-freshness index';
     }
 
     const sexUncertaintyEl = document.getElementById('sexUncertaintyText');
     if (sexUncertaintyEl) {
       const uncVal = report.sexual.uncertainty ? report.sexual.uncertainty.formatted : '±7';
-      sexUncertaintyEl.textContent = `${I18n.t('predictionUncertaintyLabel')} ${uncVal}`;
+      sexUncertaintyEl.textContent = `${lang === 'ru' ? 'Чувствительность к качеству фото:' : 'Photo-sensitivity range:'} ${uncVal}`;
     }
 
-    // 3. PSL Community Score Card (Model C)
+    // 3. PSL-inspired, rule-based heuristic (Model C)
     const pslScore = report.psl.score;
     const pslValEl = document.getElementById('pslScoreVal');
     if (pslValEl) pslValEl.textContent = pslScore;
@@ -844,12 +870,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const pslTierBadge = document.getElementById('pslTierBadge');
     if (pslTierBadge) {
       pslTierBadge.className = `tier-badge ${report.psl.tier.badgeClass}`;
-      pslTierBadge.textContent = `${lang === 'ru' ? 'Тир:' : 'Tier:'} ${report.psl.tier.code}`;
+      pslTierBadge.textContent = `${lang === 'ru' ? 'Статус:' : 'Status:'} ${report.psl.tier.code}`;
     }
 
     const pslPercentileEl = document.getElementById('pslPercentileText');
     if (pslPercentileEl) {
-      pslPercentileEl.textContent = `${I18n.t('communityPercentileLabel')} ${report.psl.percentile}%`;
+      const moduleCount = Object.keys(report.psl.modules || {}).length;
+      const pslDetail = Object.values(report.psl.modules || {})
+        .map(module => `${module.label}: ${module.score}/100`)
+        .join(' • ');
+      pslPercentileEl.textContent = lang === 'ru'
+        ? `PSL: ${moduleCount || 0} собственных геометрических входов с равными весами; не процентиль`
+        : `PSL: ${moduleCount || 0} independent geometry inputs with equal weights; not a percentile`;
+      pslPercentileEl.title = pslDetail;
     }
   }
 
@@ -908,25 +941,89 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!pot) return;
 
     const lang = I18n.currentLang;
-    const percentileText = lang === 'ru' ? pot.percentileTextRu : pot.percentileText;
+    const potentialTitle = document.querySelector('.potential-title');
+    const potentialSubtitle = document.getElementById('potentialSubtitle');
+    const potentialBadge = document.getElementById('potentialModelEstimateBadge');
+    if (potentialTitle) potentialTitle.textContent = lang === 'ru' ? 'Верхняя граница повторного фото' : 'Repeat-Photo Upper Bound';
+    if (potentialSubtitle) potentialSubtitle.textContent = lang === 'ru'
+      ? 'Это верхняя граница чувствительности индекса к условиям повторного фото. Она не предсказывает максимум внешности или результат лечения.'
+      : 'This is the index’s upper photo-sensitivity bound for a repeat image. It does not predict maximum appearance or treatment results.';
+    if (potentialBadge) potentialBadge.textContent = lang === 'ru' ? 'НЕ ПРОГНОЗ ВНЕШНОСТИ' : 'NOT AN APPEARANCE FORECAST';
 
     document.getElementById('currentScorePill').textContent = `${report.scientific.score} / 100`;
-    document.getElementById('potentialScorePill').textContent = `${pot.score} / 100`;
-    document.getElementById('potentialDeltaBadge').textContent = `+${pot.delta} ${I18n.t('potentialGrowthPts')}`;
+    document.getElementById('potentialScorePill').textContent = `≤ ${pot.photoCeiling} / 100`;
+    document.getElementById('potentialDeltaBadge').textContent = lang === 'ru'
+      ? `до +${pot.delta} из-за условий фото`
+      : `up to +${pot.delta} from photo conditions`;
 
     document.getElementById('potentialBaseBar').style.width = `${report.scientific.score}%`;
-    document.getElementById('potentialDeltaBar').style.width = `${pot.score}%`;
+    document.getElementById('potentialDeltaBar').style.width = `${pot.photoCeiling}%`;
 
-    document.getElementById('potentialCurrentLabel').textContent = `${I18n.t('potentialCurrentLevel')}: ${report.scientific.score}`;
-    document.getElementById('potentialTargetLabel').textContent = `${I18n.t('potentialTargetLevel')}: ${pot.score} (${percentileText})`;
+    document.getElementById('potentialCurrentLabel').textContent = `${lang === 'ru' ? 'Текущий индекс баланса' : 'Current balance index'}: ${report.scientific.score}`;
+    document.getElementById('potentialTargetLabel').textContent = lang === 'ru'
+      ? `≤ ${pot.photoCeiling}: предел в рамках чувствительности к фото; не максимум человека.`
+      : `≤ ${pot.photoCeiling}: photo-sensitivity bound, not a person's maximum.`;
 
     const reservesGrid = document.getElementById('potentialReservesGrid');
     reservesGrid.innerHTML = `
-      <div class="reserve-chip"><span>${I18n.t('resSkin')}</span><strong>+${pot.reserves.skin || 4} pts</strong></div>
-      <div class="reserve-chip"><span>${I18n.t('resPeri')}</span><strong>+${pot.reserves.periorbital || 5} pts</strong></div>
-      <div class="reserve-chip"><span>${I18n.t('resSym')}</span><strong>+${pot.reserves.symmetry || 3} pts</strong></div>
-      <div class="reserve-chip"><span>${I18n.t('resJaw')}</span><strong>+${pot.reserves.jawMuscles || pot.reserves.masseters || 5} pts</strong></div>
+      <div class="reserve-chip"><span>${I18n.t('resSkin')}</span><strong>${pot.reserves.skin >= 25 ? (lang === 'ru' ? 'приоритет' : 'priority') : (lang === 'ru' ? 'наблюдать' : 'monitor')}</strong></div>
+      <div class="reserve-chip"><span>${I18n.t('resPeri')}</span><strong>${pot.reserves.periorbital >= 25 ? (lang === 'ru' ? 'приоритет' : 'priority') : (lang === 'ru' ? 'наблюдать' : 'monitor')}</strong></div>
+      <div class="reserve-chip"><span>${I18n.t('resSym')}</span><strong>${pot.reserves.symmetry >= 25 ? (lang === 'ru' ? 'проверить фото' : 'verify photo') : (lang === 'ru' ? 'наблюдать' : 'monitor')}</strong></div>
+      <div class="reserve-chip"><span>${I18n.t('resJaw')}</span><strong>${pot.reserves.jawMuscles >= 25 ? (lang === 'ru' ? 'структурно' : 'structural') : (lang === 'ru' ? 'наблюдать' : 'monitor')}</strong></div>
     `;
+  }
+
+  function renderCoverageMap(report) {
+    const card = document.getElementById('coverageCard');
+    const grid = document.getElementById('coverageGrid');
+    const summary = document.getElementById('coverageSummary');
+    const badge = document.getElementById('coverageBadge');
+    const title = document.getElementById('coverageTitle');
+    const coverage = report.coverage;
+    if (!card || !grid || !coverage?.items?.length) {
+      if (card) card.classList.add('hidden');
+      return;
+    }
+
+    const lang = I18n.currentLang;
+    const statusInfo = {
+      OBSERVED: { en: 'OBSERVED', ru: 'НАБЛЮДАЕТСЯ', className: 'observed' },
+      PHOTO_PROXY: { en: 'PHOTO PROXY', ru: 'ФОТО-ПРОКСИ', className: 'photo-proxy' },
+      MISSING_INPUT: { en: 'INPUT MISSING', ru: 'НЕТ ДАННЫХ', className: 'missing-input' },
+      REQUIRES_USER_INPUT: { en: 'USER INPUT', ru: 'НУЖЕН КОНТЕКСТ', className: 'requires-user-input' },
+      CLINICAL_ONLY: { en: 'CLINICAL ONLY', ru: 'ТОЛЬКО ОЧНО', className: 'clinical-only' },
+      NOT_MEASURABLE: { en: 'NOT MEASURABLE', ru: 'НЕ ИЗМЕРЯЕТСЯ', className: 'not-measurable' }
+    };
+    const counts = coverage.items.reduce((acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      return acc;
+    }, {});
+
+    card.classList.remove('hidden');
+    if (title) title.textContent = lang === 'ru' ? 'Карта покрытия и недостающих данных' : 'Coverage Map & Missing Inputs';
+    if (summary) {
+      summary.textContent = lang === 'ru'
+        ? `Покрытие не равно 100%: наблюдаемо — ${counts.OBSERVED || 0}; фото-прокси — ${counts.PHOTO_PROXY || 0}; нужны данные/контекст — ${(counts.MISSING_INPUT || 0) + (counts.REQUIRES_USER_INPUT || 0)}; только очно или не измеряется — ${(counts.CLINICAL_ONLY || 0) + (counts.NOT_MEASURABLE || 0)}.`
+        : `Coverage is not 100%: observed — ${counts.OBSERVED || 0}; photo proxies — ${counts.PHOTO_PROXY || 0}; missing input/context — ${(counts.MISSING_INPUT || 0) + (counts.REQUIRES_USER_INPUT || 0)}; clinical-only or not measurable — ${(counts.CLINICAL_ONLY || 0) + (counts.NOT_MEASURABLE || 0)}.`;
+    }
+    if (badge) badge.textContent = lang === 'ru' ? 'ПРОВЕРЯЕМЫЙ ЧЕК-ЛИСТ' : 'TRACEABLE CHECKLIST';
+
+    grid.innerHTML = coverage.items.map(item => {
+      const status = statusInfo[item.status] || statusInfo.NOT_MEASURABLE;
+      const label = lang === 'ru' ? item.labelRu : item.labelEn;
+      const detail = lang === 'ru' ? item.detailRu : item.detailEn;
+      const next = lang === 'ru' ? item.nextRu : item.nextEn;
+      return `
+        <article class="coverage-item">
+          <div class="coverage-item-top">
+            <span class="coverage-item-title">${label}</span>
+            <span class="coverage-status ${status.className}">${lang === 'ru' ? status.ru : status.en}</span>
+          </div>
+          <p class="coverage-detail">${detail}</p>
+          <p class="coverage-next">${next}</p>
+        </article>
+      `;
+    }).join('');
   }
 
   function renderDynamicSubBars(report) {
@@ -934,7 +1031,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!subBars) return;
     const lang = I18n.currentLang;
 
-    if (report.viewMode === 'profile') {
+    if (report.viewMode === 'composite') {
+      const m = report.scientificMatrix;
+      subBars.innerHTML = `
+        ${createSubBar(lang === 'ru' ? `Баланс конфигурации (${m.configuration.weight}%)` : `Configuration balance (${m.configuration.weight}%)`, m.configuration.score, 'bg-cyan')}
+        ${createSubBar(lang === 'ru' ? `Краниофациальные пропорции (${m.anthropometry.weight}%)` : `Craniofacial proportions (${m.anthropometry.weight}%)`, m.anthropometry.score, 'bg-cyan')}
+        ${createSubBar(lang === 'ru' ? `Периорбитальный комплекс (${m.periorbital.weight}%)` : `Periorbital complex (${m.periorbital.weight}%)`, m.periorbital.score, 'bg-rose')}
+        ${createSubBar(lang === 'ru' ? `Билатеральный баланс (${m.symmetry.weight}%)` : `Bilateral balance (${m.symmetry.weight}%)`, m.symmetry.score, 'bg-purple')}
+        ${createSubBar(lang === 'ru' ? `Кожа и мягкие ткани (${m.skinHealth.weight}%)` : `Skin & soft tissue (${m.skinHealth.weight}%)`, m.skinHealth.score, 'bg-gold')}
+        ${createSubBar(lang === 'ru' ? `Гармония признаков (${m.harmony.weight}%)` : `Cross-feature harmony (${m.harmony.weight}%)`, m.harmony.score, 'bg-emerald')}
+      `;
+    } else if (report.viewMode === 'profile') {
       const m = report.modules.cephalometrics.metrics;
       subBars.innerHTML = `
         ${createSubBar(lang === 'ru' ? 'Гониальный угол (Ar-Go-Me)' : 'Gonial Angle (Ar-Go-Me)', m.gonialAngle.score, 'bg-cyan')}
@@ -945,14 +1052,13 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     } else {
       const m = report.modules;
-      const avgScore = report.modules.morph3D ? Math.round(report.modules.morph3D.score3D || 85) : 85;
       subBars.innerHTML = `
-        ${createSubBar(lang === 'ru' ? '1. Усредненность / Прототипичность (16.7%)' : '1. Averageness / Prototypicality (16.7%)', avgScore, 'bg-cyan')}
-        ${createSubBar(lang === 'ru' ? '2. Внешний вид кожи и мягких тканей (16.7%)' : '2. Skin & Soft-Tissue Appearance (16.7%)', m.skin.score, 'bg-gold')}
-        ${createSubBar(lang === 'ru' ? '3. Билатеральная симметрия (16.7%)' : '3. Bilateral Symmetry (16.7%)', m.symmetry.score, 'bg-purple')}
-        ${createSubBar(lang === 'ru' ? '4. Периорбитальный комплекс (16.7%)' : '4. Periorbital & Eye Complex (16.7%)', m.periorbital.score, 'bg-rose')}
-        ${createSubBar(lang === 'ru' ? '5. Краниофациальные пропорции (16.7%)' : '5. Craniofacial Proportions (16.7%)', m.anthro.score, 'bg-cyan')}
-        ${createSubBar(lang === 'ru' ? '6. Вторичный половой диморфизм (16.7%)' : '6. Secondary Sexual Dimorphism (16.7%)', m.dimorphism.score, 'bg-emerald')}
+        ${createSubBar(lang === 'ru' ? `Баланс конфигурации (${m.configuration.weight})` : `Configuration balance (${m.configuration.weight})`, m.configuration.score, 'bg-cyan')}
+        ${createSubBar(lang === 'ru' ? `Краниофациальные пропорции (${m.anthro.weight})` : `Craniofacial proportions (${m.anthro.weight})`, m.anthro.score, 'bg-cyan')}
+        ${createSubBar(lang === 'ru' ? `Периорбитальный комплекс (${m.periorbital.weight})` : `Periorbital complex (${m.periorbital.weight})`, m.periorbital.score, 'bg-rose')}
+        ${createSubBar(lang === 'ru' ? `Билатеральный баланс (${m.symmetry.weight})` : `Bilateral balance (${m.symmetry.weight})`, m.symmetry.score, 'bg-purple')}
+        ${createSubBar(lang === 'ru' ? `Кожа и мягкие ткани (${m.skin.weight})` : `Skin & soft tissue (${m.skin.weight})`, m.skin.score, 'bg-gold')}
+        ${createSubBar(lang === 'ru' ? `Гармония признаков (${m.harmony.weight})` : `Cross-feature harmony (${m.harmony.weight})`, m.harmony.score, 'bg-emerald')}
       `;
     }
 
@@ -979,8 +1085,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const s = report.modules.skin.metrics;
     const sym = report.modules.symmetry.metrics;
     const d3 = report.modules.morph3D ? report.modules.morph3D.depths : {};
+    const d3Metrics = report.modules.morph3D ? report.modules.morph3D.metrics : {};
 
     const lang = I18n.currentLang;
+    const skinRow = (label, metric) => {
+      const safeMetric = metric || {
+        value: 'Unavailable', ideal: 'No readable skin pixels', score: null,
+        status: 'NOT_OBSERVABLE', domain: 'PHOTO PROXY'
+      };
+      return createMetricRow(
+        label,
+        safeMetric.value ?? 'Unavailable',
+        safeMetric.ideal ?? 'Image-derived proxy',
+        safeMetric.status ?? 'ESTIMATED',
+        safeMetric.domain ?? 'PHOTO PROXY',
+        null,
+        null,
+        safeMetric.score ?? safeMetric.score100 ?? null
+      );
+    };
 
     container.innerHTML = `
       <!-- Craniofacial Module -->
@@ -1011,11 +1134,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="module-score-pill">${report.modules.periorbital.score}/100</span>
         </div>
         ${createMetricRow(I18n.t('metricCanthalTilt'), `${m.canthalTilt.rawVal > 0 ? '+' : ''}${m.canthalTilt.rawVal.toFixed(1)}°`, m.canthalTilt.referenceRange, m.canthalTilt.status, m.canthalTilt.domain, m.canthalTilt.zScore, m.canthalTilt.percentile, m.canthalTilt.score100)}
-        ${createMetricRow(I18n.t('metricScleralShow'), `${m.scleralShow.rawVal.toFixed(1)} mm`, m.scleralShow.referenceRange, m.scleralShow.status, m.scleralShow.domain, m.scleralShow.zScore, m.scleralShow.percentile, m.scleralShow.score100)}
+        ${createMetricRow(I18n.t('metricScleralShow'), `${m.scleralShow.rawVal.toFixed(3)} eye-height ratio`, m.scleralShow.referenceRange, m.scleralShow.status, m.scleralShow.domain, m.scleralShow.zScore, m.scleralShow.percentile, m.scleralShow.score100)}
         ${createMetricRow(I18n.t('metricPalpebral'), `${m.palpebralRatio.rawVal.toFixed(2)} : 1`, m.palpebralRatio.referenceRange, m.palpebralRatio.status, m.palpebralRatio.domain, m.palpebralRatio.zScore, m.palpebralRatio.percentile, m.palpebralRatio.score100)}
         ${createMetricRow(I18n.t('metricIntercanthal'), m.intercanthalIndex.rawVal.toFixed(2), m.intercanthalIndex.referenceRange, m.intercanthalIndex.status, m.intercanthalIndex.domain, m.intercanthalIndex.zScore, m.intercanthalIndex.percentile, m.intercanthalIndex.score100)}
         ${createMetricRow(I18n.t('metricOrbitalComp'), m.orbitalCompactness.rawVal.toFixed(2), m.orbitalCompactness.referenceRange, m.orbitalCompactness.status, m.orbitalCompactness.domain, m.orbitalCompactness.zScore, m.orbitalCompactness.percentile, m.orbitalCompactness.score100)}
-        ${createMetricRow(I18n.t('metricHunterEyes'), `${m.hunterEyes.score100}/100`, m.hunterEyes.referenceRange, 'MEASURED', 'COMMUNITY', null, null, m.hunterEyes.score100)}
+        ${createMetricRow(I18n.t('metricHunterEyes'), `${m.hunterEyes.score100}/100`, m.hunterEyes.referenceRange, m.hunterEyes.status, m.hunterEyes.domain, null, null, m.hunterEyes.score100)}
       </div>
 
       <!-- Skin & Soft Tissue -->
@@ -1027,11 +1150,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <span class="module-score-pill">${report.modules.skin.score}/100</span>
         </div>
-        ${createMetricRow(I18n.t('metricCheekHollow'), s.adiposity ? s.adiposity.value : 'Contrast: 6.8%', s.adiposity ? s.adiposity.ideal : '4.0% – 12.0%', 'MEASURED', 'SCIENTIFIC', null, null, s.adiposity ? s.adiposity.score : 85)}
-        ${createMetricRow(I18n.t('metricUniformity'), s.uniformity ? s.uniformity.value : 'σ = 3.2', s.uniformity ? s.uniformity.ideal : 'σ < 3.8', 'MEASURED', 'SCIENTIFIC', null, null, s.uniformity ? s.uniformity.score : 85)}
-        ${createMetricRow(I18n.t('metricMicrorelief'), s.smoothness ? s.smoothness.value : 'Var = 36', s.smoothness ? s.smoothness.ideal : 'Var 25 – 55', 'MEASURED', 'SCIENTIFIC', null, null, s.smoothness ? s.smoothness.score : 85)}
-        ${createMetricRow(I18n.t('metricCarotenoid'), s.carotenoid ? s.carotenoid.value : 'b* = +14.0', s.carotenoid ? s.carotenoid.ideal : 'b* +8.0 to +18.0', 'MEASURED', 'SCIENTIFIC', null, null, s.carotenoid ? s.carotenoid.score : 88)}
-        ${createMetricRow(I18n.t('metricDarkCircles'), s.darkCircles ? s.darkCircles.value : 'ΔL* = -1.0', s.darkCircles ? s.darkCircles.ideal : 'ΔL* ≥ -1.5', 'MEASURED', 'SCIENTIFIC', null, null, s.darkCircles ? s.darkCircles.score : 86)}
+        ${skinRow(I18n.t('metricCheekHollow'), s.adiposity)}
+        ${skinRow(I18n.t('metricUniformity'), s.uniformity)}
+        ${skinRow(I18n.t('metricMicrorelief'), s.smoothness)}
+        ${skinRow(I18n.t('metricCarotenoid'), s.carotenoid)}
+        ${skinRow(I18n.t('metricDarkCircles'), s.darkCircles)}
       </div>
 
       <!-- Symmetry & Coaxiality -->
@@ -1045,7 +1168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         ${createMetricRow(I18n.t('metricFA'), sym.fluctuatingAsymmetry.value, sym.fluctuatingAsymmetry.ideal, 'MEASURED', 'SCIENTIFIC', null, null, sym.fluctuatingAsymmetry.score)}
         ${createMetricRow(I18n.t('metricMidlineDev'), sym.midlineDeviation.value, sym.midlineDeviation.ideal, 'MEASURED', 'SCIENTIFIC', null, null, sym.midlineDeviation.score)}
-        ${createMetricRow(I18n.t('metricTextureSym'), sym.textureSymmetry ? sym.textureSymmetry.value : '90%', sym.textureSymmetry ? sym.textureSymmetry.ideal : '> 85%', 'MEASURED', 'SCIENTIFIC', null, null, sym.textureSymmetry ? sym.textureSymmetry.score : 88)}
+        ${createMetricRow(I18n.t('metricTextureSym'), sym.textureSymmetry?.value ?? 'Unavailable', sym.textureSymmetry?.ideal ?? 'No readable image pixels', sym.textureSymmetry?.status ?? 'NOT_OBSERVABLE', sym.textureSymmetry?.domain ?? 'PHOTO PROXY', null, null, sym.textureSymmetry?.score ?? null)}
         ${createMetricRow(lang === 'ru' ? 'Баланс глаз и бровей' : 'Eyes & Brow Balance', `${sym.eyesEyebrowsScore}%`, '> 90%', 'MEASURED', 'SCIENTIFIC', null, null, sym.eyesEyebrowsScore)}
         ${createMetricRow(lang === 'ru' ? 'Симметрия скул и челюсти' : 'Cheeks & Jaw Symmetry', `${sym.cheeksNoseScore}%`, '> 90%', 'MEASURED', 'SCIENTIFIC', null, null, sym.cheeksNoseScore)}
       </div>
@@ -1059,11 +1182,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <span class="module-score-pill">${I18n.t('badgeEstimated')}</span>
         </div>
-        ${createMetricRow(I18n.t('metricConvexity'), `${d3.facialConvexityDeg || '166.5° (3D Est.)'}`, '163.0° – 173.0°', 'ESTIMATED', 'ESTIMATED 3D', null, null, 85)}
-        ${createMetricRow(lang === 'ru' ? 'Индекс проекции кончика носа' : 'Nasal Projection Ratio', `${d3.nasalProjectionIndex || '0.62 (Ratio)'}`, '0.55 – 0.70', 'ESTIMATED', 'ESTIMATED 3D', '+0.31', 'P62', 88)}
-        ${createMetricRow(lang === 'ru' ? 'Индекс проекции подбородка' : 'Chin Projection Ratio', `${d3.chinProjectionIndex || '0.50 (Ratio)'}`, '0.45 – 0.58', 'ESTIMATED', 'ESTIMATED 3D', '+0.00', 'P50', 92)}
-        ${createMetricRow(I18n.t('metricOrbitalVec'), `${d3.orbitalVectorDesc || 'Neutral Vector (Est.)'}`, 'Positive / Neutral', 'ESTIMATED', 'ESTIMATED 3D', null, null, 85)}
-        ${createMetricRow(lang === 'ru' ? 'Индекс малярной проекции скул' : 'Malar Prominence Ratio', `${d3.malarProminenceIndex || '0.78 (Ratio)'}`, '0.70 – 0.86', 'ESTIMATED', 'ESTIMATED 3D', '+0.00', 'P50', 90)}
+        ${createMetricRow(I18n.t('metricConvexity'), `${d3.facialConvexityDeg || 'Unavailable'}`, d3Metrics.facialConvexity ? d3Metrics.facialConvexity.referenceRange : 'Single-image 3D proxy', d3Metrics.facialConvexity?.status || 'NOT_OBSERVABLE', 'ESTIMATED 3D', null, null, d3Metrics.facialConvexity ? d3Metrics.facialConvexity.score100 : null)}
+        ${createMetricRow(lang === 'ru' ? 'Индекс проекции кончика носа' : 'Nasal Projection Ratio', `${d3.nasalProjectionIndex || 'Unavailable'}`, d3Metrics.nasalProjection ? d3Metrics.nasalProjection.referenceRange : 'Single-image 3D proxy', d3Metrics.nasalProjection?.status || 'NOT_OBSERVABLE', 'ESTIMATED 3D', null, null, d3Metrics.nasalProjection ? d3Metrics.nasalProjection.score100 : null)}
+        ${createMetricRow(lang === 'ru' ? 'Индекс проекции подбородка' : 'Chin Projection Ratio', `${d3.chinProjectionIndex || 'Unavailable'}`, d3Metrics.chinProjection ? d3Metrics.chinProjection.referenceRange : 'Single-image 3D proxy', d3Metrics.chinProjection?.status || 'NOT_OBSERVABLE', 'ESTIMATED 3D', null, null, d3Metrics.chinProjection ? d3Metrics.chinProjection.score100 : null)}
+        ${createMetricRow(I18n.t('metricOrbitalVec'), `${d3.orbitalVectorDesc || 'Unavailable'}`, 'Single-image depth proxy', 'ESTIMATED', 'ESTIMATED 3D')}
+        ${createMetricRow(lang === 'ru' ? 'Индекс малярной проекции скул' : 'Malar Prominence Ratio', `${d3.malarProminenceIndex || 'Unavailable'}`, d3Metrics.malarProminence ? d3Metrics.malarProminence.referenceRange : 'Single-image 3D proxy', d3Metrics.malarProminence?.status || 'NOT_OBSERVABLE', 'ESTIMATED 3D', null, null, d3Metrics.malarProminence ? d3Metrics.malarProminence.score100 : null)}
       </div>
 
       <!-- Dimorphism & Age -->
@@ -1073,11 +1196,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <i data-lucide="dna" class="text-emerald" style="width:18px;height:18px;"></i>
             ${I18n.t('secDimorphism')}
           </div>
-          <span class="module-score-pill">${m.masculinity.score100}/100</span>
+          <span class="module-score-pill">${report.modules.dimorphism.score}/100</span>
         </div>
-        ${createMetricRow(I18n.t('metricMasculinity'), `${m.masculinity.score100}/100`, m.masculinity.referenceRange, 'MEASURED', 'SCIENTIFIC', m.masculinity.zScore, m.masculinity.percentile, m.masculinity.score100)}
-        ${createMetricRow(lang === 'ru' ? 'Воспринимаемый возраст лица' : 'Perceived Facial Age', `${report.morph2D.subScores.perceivedAge} ${lang === 'ru' ? 'лет' : 'years'}`, '20 – 35 years', 'ESTIMATED', 'SCIENTIFIC')}
-        ${createMetricRow(I18n.t('metricYouthfulness'), `${m.youthfulness.score100}/100`, m.youthfulness.referenceRange, 'MEASURED', 'SCIENTIFIC', m.youthfulness.zScore, m.youthfulness.percentile, m.youthfulness.score100)}
+        ${createMetricRow(lang === 'ru' ? 'Соответствие выбранному половому профилю' : 'Selected sex-profile fit', `${report.modules.dimorphism.score}/100`, 'Rule-based photo heuristic', 'ESTIMATED', 'PHOTO PROXY', null, null, report.modules.dimorphism.score)}
+        ${createMetricRow(lang === 'ru' ? 'Оценка возраста' : 'Age estimate', lang === 'ru' ? 'Не вычисляется по одному фото' : 'Not calculated from one photo', lang === 'ru' ? 'Требуются возраст и валидированная модель' : 'Requires age metadata and a validated model', 'NOT_OBSERVABLE', 'PHOTO PROXY')}
+        ${createMetricRow(lang === 'ru' ? 'Визуальная свежесть (прокси)' : 'Visual freshness (proxy)', `${m.youthfulness.score100}/100`, 'Image-derived proxy; not age', 'ESTIMATED', 'PHOTO PROXY', null, null, m.youthfulness.score100)}
       </div>
 
     `;
@@ -1142,7 +1265,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ${createMetricRow(I18n.t('metricFwhr'), fa.fwhr.rawVal.toFixed(2), fa.fwhr.referenceRange, 'MEASURED', 'SCIENTIFIC', fa.fwhr.zScore, fa.fwhr.percentile, fa.fwhr.score100)}
           ${createMetricRow(I18n.t('metricMidface'), fa.midfaceRatio.rawVal.toFixed(2), fa.midfaceRatio.referenceRange, 'MEASURED', 'SCIENTIFIC', fa.midfaceRatio.zScore, fa.midfaceRatio.percentile, fa.midfaceRatio.score100)}
           ${createMetricRow(I18n.t('metricCanthalTilt'), `${fa.canthalTilt.rawVal > 0 ? '+' : ''}${fa.canthalTilt.rawVal.toFixed(1)}°`, fa.canthalTilt.referenceRange, 'MEASURED', 'SCIENTIFIC', fa.canthalTilt.zScore, fa.canthalTilt.percentile, fa.canthalTilt.score100)}
-          ${createMetricRow(I18n.t('metricHunterEyes'), `${fa.hunterEyes.score100}/100`, fa.hunterEyes.referenceRange, 'MEASURED', 'COMMUNITY', null, null, fa.hunterEyes.score100)}
+          ${createMetricRow(I18n.t('metricHunterEyes'), `${fa.hunterEyes.score100}/100`, fa.hunterEyes.referenceRange, fa.hunterEyes.status, fa.hunterEyes.domain, null, null, fa.hunterEyes.score100)}
           ${createMetricRow(I18n.t('metricFA'), fReport.modules.symmetry.metrics.fluctuatingAsymmetry.value, '> 94.0%', 'MEASURED', 'SCIENTIFIC', null, null, fReport.modules.symmetry.metrics.fluctuatingAsymmetry.score)}
         </div>
       `;
@@ -1173,17 +1296,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function createMetricRow(name, val, ideal, status = 'MEASURED', domain = 'SCIENTIFIC', zScore = null, percentile = null, score100 = null) {
     const statusBadgeClass = status === 'MEASURED' ? 'badge-measured' : (status === 'ESTIMATED' ? 'badge-estimated' : 'badge-unobserved');
-    const domainBadgeClass = domain === 'COMMUNITY' ? 'badge-community' : (domain === 'ESTIMATED 3D' ? 'badge-3d' : 'badge-scientific');
+    const domainBadgeClass = domain === 'COMMUNITY' ? 'badge-community' : ((domain === 'ESTIMATED 3D' || domain === 'PHOTO PROXY') ? 'badge-3d' : 'badge-scientific');
 
     const statusLabel = I18n.t(status === 'MEASURED' ? 'badgeMeasured' : (status === 'ESTIMATED' ? 'badgeEstimated' : 'badgeNotObservable'));
-    const domainLabel = I18n.t(domain === 'COMMUNITY' ? 'badgeCommunity' : (domain === 'ESTIMATED 3D' ? 'badgeEstimated3D' : 'badgeScientific'));
+    const domainLabel = domain === 'PHOTO PROXY'
+      ? (I18n.currentLang === 'ru' ? 'ФОТО-ПРОКСИ' : 'PHOTO PROXY')
+      : I18n.t(domain === 'COMMUNITY' ? 'badgeCommunity' : (domain === 'ESTIMATED 3D' ? 'badgeEstimated3D' : 'badgeScientific'));
 
-    let statInfo = '';
-    if (zScore !== null && percentile !== null && domain !== 'COMMUNITY' && status !== 'NOT_OBSERVABLE') {
-      const pText = typeof percentile === 'string' ? percentile : (percentile >= 99 ? '>P99' : (percentile <= 1 ? '<P1' : `P${percentile}`));
-      const zText = typeof zScore === 'string' ? zScore : (zScore > 0 ? `+${zScore}` : `${zScore}`);
-      statInfo = `<span class="metric-stat-pill">Z: ${zText} • ${pText}</span>`;
-    }
+    // Image-derived measurements have no calibration cohort in this project,
+    // so even a saved legacy report must not display a population percentile.
+    const statInfo = '';
 
     let scorePill = '';
     if (score100 !== null && score100 !== undefined) {
@@ -1230,6 +1352,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const title = (lang === 'ru' && r.titleRu) ? r.titleRu : (r.titleEn || r.title);
       const category = (lang === 'ru' && r.categoryRu) ? r.categoryRu : (r.categoryEn || r.category || 'Softmaxxing');
       const text = (lang === 'ru' && r.textRu) ? r.textRu : (r.textEn || r.text);
+      const protocol = (lang === 'ru' && r.protocolRu?.length) ? r.protocolRu : (r.protocolEn || []);
+      const source = r.sourceUrl
+        ? `<a class="rec-source-link" href="${r.sourceUrl}" target="_blank" rel="noopener noreferrer">${r.sourceLabel || (lang === 'ru' ? 'Источник' : 'Source')}</a>`
+        : '';
+      const protocolHtml = protocol.length
+        ? `<div class="rec-protocol"><strong>${lang === 'ru' ? 'Протокол' : 'Protocol'}</strong><ol>${protocol.map(step => `<li>${step}</li>`).join('')}</ol>${source}</div>`
+        : source;
 
       const div = document.createElement('div');
       div.className = 'rec-item';
@@ -1241,10 +1370,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="rec-item-badges">
             <span class="rec-cat-tag ${r.level || 'soft'}">${category}</span>
-            <span class="rec-gain-pill">${r.gain || '+3-5 pts'}</span>
+            <span class="rec-gain-pill">${r.gain || 'Review'}</span>
           </div>
         </div>
         <div class="rec-text">${text}</div>
+        ${protocolHtml}
       `;
       list.appendChild(div);
     });

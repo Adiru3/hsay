@@ -82,8 +82,8 @@ class FeatureIntegrationEngine {
       verticalHorizontalHarmony
     ) / 7;
 
-    const symScore = symRes ? symRes.subTotalScore : 85;
-    const symDamping = symScore < 80 ? ((80 - symScore) * 0.25) : 0;
+    const symScore = symRes?.subTotalScore;
+    const symDamping = Number.isFinite(symScore) && symScore < 80 ? ((80 - symScore) * 0.25) : 0;
 
     const bonePeriorbitalSynergy = (fwhrScore > 85 && canthalTiltScore > 85) ? 3.0 : 0;
     const globalHarmonyScore = Math.max(15, Math.min(99, Math.round(baseMean + bonePeriorbitalSynergy - symDamping)));

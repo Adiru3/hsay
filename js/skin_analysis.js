@@ -176,43 +176,43 @@ class SkinAnalyzer {
         subTotalScore: Math.max(10, Math.min(99, subTotalSkin)),
         scoreSkinQuality,
         scoreSoftTissue,
-        status: 'MEASURED',
-        domain: 'SCIENTIFIC',
+        status: 'ESTIMATED',
+        domain: 'PHOTO PROXY',
         metrics: {
           adiposity: {
             value: `Contrast: ${hollowContrast.toFixed(1)}%`,
             score: scoreAdiposity,
             ideal: '4.0% – 12.0% (Malar Contour)',
-            status: 'MEASURED',
-            domain: 'SCIENTIFIC'
+            status: 'ESTIMATED',
+            domain: 'PHOTO PROXY'
           },
           uniformity: {
             value: `σ = ${colorStdDevAvg.toFixed(1)}`,
             score: scoreUniformity,
             ideal: 'σ < 3.8 (CIELAB Homogeneity)',
-            status: 'MEASURED',
-            domain: 'SCIENTIFIC'
+            status: 'ESTIMATED',
+            domain: 'PHOTO PROXY'
           },
           smoothness: {
             value: `Var = ${Math.round(lapVariance)}`,
             score: scoreSmoothness,
             ideal: 'Var 25 – 55 (Microrelief)',
-            status: 'MEASURED',
-            domain: 'SCIENTIFIC'
+            status: 'ESTIMATED',
+            domain: 'PHOTO PROXY'
           },
           carotenoid: {
             value: `b* = +${bStarNormalized.toFixed(1)}`,
             score: scoreCarotenoid,
             ideal: 'b* +8.0 to +18.0 (Warm Undertone)',
-            status: 'MEASURED',
-            domain: 'SCIENTIFIC'
+            status: 'ESTIMATED',
+            domain: 'PHOTO PROXY'
           },
           darkCircles: {
             value: `ΔL* = ${deltaL.toFixed(1)}`,
             score: scoreDarkCircles,
             ideal: 'ΔL* ≥ -1.5 (Minimal Dark Circles)',
-            status: 'MEASURED',
-            domain: 'SCIENTIFIC'
+            status: 'ESTIMATED',
+            domain: 'PHOTO PROXY'
           }
         }
       };
@@ -225,20 +225,76 @@ class SkinAnalyzer {
    * Native HTML5 Canvas Fallback Pipeline
    */
   static _nativeAnalysis(ctx, cheekBox, hollowBox, foreheadBox, underEyeBox, lipRatioVal, scoreLipRatio, gender) {
-    return {
-      subTotalScore: 84,
-      scoreSkinQuality: 85,
-      scoreSoftTissue: 83,
-      status: 'ESTIMATED',
-      domain: 'SCIENTIFIC',
-      metrics: {
-        adiposity: { value: 'Contrast: 6.5%', score: 84, ideal: '4.0% – 12.0% (Malar Contour)', status: 'ESTIMATED', domain: 'SCIENTIFIC' },
-        uniformity: { value: 'σ = 3.4', score: 85, ideal: 'σ < 3.8 (CIELAB Homogeneity)', status: 'ESTIMATED', domain: 'SCIENTIFIC' },
-        smoothness: { value: 'Var = 38', score: 84, ideal: 'Var 25 – 55 (Microrelief)', status: 'ESTIMATED', domain: 'SCIENTIFIC' },
-        carotenoid: { value: 'b* = +12.4', score: 88, ideal: 'b* +8.0 to +18.0 (Warm Undertone)', status: 'ESTIMATED', domain: 'SCIENTIFIC' },
-        darkCircles: { value: 'ΔL* = -0.8', score: 86, ideal: 'ΔL* ≥ -1.5 (Minimal Dark Circles)', status: 'ESTIMATED', domain: 'SCIENTIFIC' }
-      }
-    };
+    // OpenCV may still be loading when the user starts an analysis.  Use real
+    // canvas pixels in that case; never substitute a flattering fixed score.
+    try {
+      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+      const sample = box => {
+        const image = ctx.getImageData(box.x, box.y, box.w, box.h);
+        const data = image.data;
+        const lumAt = index => 0.299 * data[index] + 0.587 * data[index + 1] + 0.114 * data[index + 2];
+        let sum = 0, sumSq = 0, edgeSum = 0, chromaSum = 0, count = 0;
+        for (let y = 1; y < box.h - 1; y += 2) {
+          for (let x = 1; x < box.w - 1; x += 2) {
+            const index = (y * box.w + x) * 4;
+            const lum = lumAt(index);
+            sum += lum;
+            sumSq += lum * lum;
+            chromaSum += data[index] - data[index + 2];
+            edgeSum += Math.abs(lum - lumAt(((y - 1) * box.w + x) * 4)) + Math.abs(lum - lumAt((y * box.w + x - 1) * 4));
+            count++;
+          }
+        }
+        const mean = sum / Math.max(count, 1);
+        return {
+          mean,
+          std: Math.sqrt(Math.max(0, sumSq / Math.max(count, 1) - mean * mean)),
+          edge: edgeSum / Math.max(count, 1),
+          chroma: chromaSum / Math.max(count, 1)
+        };
+      };
+      const cheek = sample(cheekBox);
+      const hollow = sample(hollowBox);
+      const underEye = sample(underEyeBox);
+      const uniformity = Math.round(clamp(100 - Math.max(0, cheek.std - 9) * 3.2, 20, 96));
+      const smoothness = Math.round(clamp(100 - Math.max(0, cheek.edge - 28) * 1.15, 20, 96));
+      const darkDelta = ((underEye.mean - cheek.mean) / Math.max(cheek.mean, 1)) * 100;
+      const darkCircles = Math.round(clamp(94 - Math.max(0, -darkDelta - 2) * 4.5, 20, 94));
+      const hollowContrast = ((cheek.mean - hollow.mean) / Math.max(cheek.mean, 1)) * 100;
+      const adiposity = Math.round(clamp(78 + Math.min(12, Math.max(-18, hollowContrast - 3) * 1.2), 35, 90));
+      const colourBalance = Math.round(clamp(88 - Math.abs(cheek.chroma - 12) * 0.8, 35, 92));
+      const subTotalScore = Math.round((uniformity + smoothness + colourBalance + darkCircles + adiposity) / 5);
+      return {
+        subTotalScore,
+        scoreSkinQuality: Math.round((uniformity + smoothness + colourBalance) / 3),
+        scoreSoftTissue: Math.round((adiposity + darkCircles + scoreLipRatio) / 3),
+        status: 'ESTIMATED',
+        domain: 'PHOTO PROXY',
+        metrics: {
+          adiposity: { value: `Luminance contrast: ${hollowContrast.toFixed(1)}%`, score: adiposity, ideal: 'Image proxy only', status: 'ESTIMATED', domain: 'PHOTO PROXY' },
+          uniformity: { value: `Luminance sigma = ${cheek.std.toFixed(1)}`, score: uniformity, ideal: 'Even illumination and low local variance', status: 'ESTIMATED', domain: 'PHOTO PROXY' },
+          smoothness: { value: `Edge activity = ${cheek.edge.toFixed(1)}`, score: smoothness, ideal: 'Photo proxy; affected by focus and compression', status: 'ESTIMATED', domain: 'PHOTO PROXY' },
+          carotenoid: { value: `RGB colour balance = ${cheek.chroma.toFixed(1)}`, score: colourBalance, ideal: 'Photo proxy; not a dietary measure', status: 'ESTIMATED', domain: 'PHOTO PROXY' },
+          darkCircles: { value: `Relative luminance delta = ${darkDelta.toFixed(1)}%`, score: darkCircles, ideal: 'Photo proxy; affected by light and sleep', status: 'ESTIMATED', domain: 'PHOTO PROXY' }
+        }
+      };
+    } catch (error) {
+      // Do not turn an unreadable image into a believable fixed skin score.
+      return {
+        subTotalScore: null,
+        status: 'NOT_OBSERVABLE',
+        reliability: 'LOW',
+        domain: 'PHOTO PROXY',
+        explanation: 'Skin pixels are unavailable to the local analyser. Retake the photo in a supported browser.',
+        metrics: {
+          adiposity: { value: 'Unavailable', score: null, ideal: 'No readable skin pixels', status: 'NOT_OBSERVABLE', domain: 'PHOTO PROXY' },
+          uniformity: { value: 'Unavailable', score: null, ideal: 'No readable skin pixels', status: 'NOT_OBSERVABLE', domain: 'PHOTO PROXY' },
+          smoothness: { value: 'Unavailable', score: null, ideal: 'No readable skin pixels', status: 'NOT_OBSERVABLE', domain: 'PHOTO PROXY' },
+          carotenoid: { value: 'Unavailable', score: null, ideal: 'No readable skin pixels', status: 'NOT_OBSERVABLE', domain: 'PHOTO PROXY' },
+          darkCircles: { value: 'Unavailable', score: null, ideal: 'No readable skin pixels', status: 'NOT_OBSERVABLE', domain: 'PHOTO PROXY' }
+        }
+      };
+    }
   }
 }
 

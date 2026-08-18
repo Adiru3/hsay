@@ -99,8 +99,10 @@ class QualityControlEngine {
       const avgLap = laplacianSum / (countLap || 1);
       scoreSharpness = Math.max(40, Math.min(100, 30 + avgLap * 4.5));
     } catch (e) {
-      scoreLighting = 88;
-      scoreSharpness = 88;
+      // If pixels are not readable, quality is unknown rather than quietly
+      // favourable. The reduced values force a low-reliability report.
+      scoreLighting = 40;
+      scoreSharpness = 40;
     }
 
     const photoReliability = Math.round(

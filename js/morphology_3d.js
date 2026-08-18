@@ -35,7 +35,7 @@ class Morphology3DEngine {
     // Properly scaled dimensionless ratio (0.55 – 0.70 reference range)
     let nasalProjectionRatio = parseFloat((rawNasalZSpan / (intercanthal * 0.1 || 10)).toFixed(2));
     if (nasalProjectionRatio < 0.3 || nasalProjectionRatio > 1.2) {
-      nasalProjectionRatio = parseFloat((0.55 + (rawNasalZSpan % 0.15)).toFixed(2));
+      nasalProjectionRatio = null;
     }
 
     // 2. Chin (Pogonion) Anterior Projection Ratio
@@ -43,7 +43,7 @@ class Morphology3DEngine {
     const rawChinZSpan = Math.abs((pogonion.z || 0) - (subnasale.z || 0));
     let chinProjectionRatio = parseFloat((rawChinZSpan / (intercanthal * 0.1 || 10)).toFixed(2));
     if (chinProjectionRatio < 0.2 || chinProjectionRatio > 1.0) {
-      chinProjectionRatio = parseFloat((0.46 + (rawChinZSpan % 0.12)).toFixed(2));
+      chinProjectionRatio = null;
     }
 
     // 3. Maxillary Support & Orbital Vector Proxy
@@ -62,7 +62,7 @@ class Morphology3DEngine {
     const rawBrowZSpan = Math.abs((glabella.z || 0) - corneaZ);
     let browProminenceRatio = parseFloat((rawBrowZSpan / (intercanthal * 0.1 || 10)).toFixed(2));
     if (browProminenceRatio < 0.1 || browProminenceRatio > 0.9) {
-      browProminenceRatio = 0.42;
+      browProminenceRatio = null;
     }
 
     // 5. Malar / Cheekbone Prominence Ratio (Zygion depth relative to coronal plane)
@@ -71,7 +71,7 @@ class Morphology3DEngine {
     const malarDepthZ = Math.abs(cheekDepthAvg - planeZ);
     let malarProminenceRatio = parseFloat((malarDepthZ / (faceWidth * 0.05 || 15)).toFixed(2));
     if (malarProminenceRatio < 0.4 || malarProminenceRatio > 1.2) {
-      malarProminenceRatio = 0.78;
+      malarProminenceRatio = null;
     }
 
     // 6. Estimated Facial Convexity Angle (G - Sn - Pog in 3D Landmark Space)
@@ -83,29 +83,44 @@ class Morphology3DEngine {
     const convexityRad = Math.acos(Math.max(-1, Math.min(1, dot / (mag1 * mag2))));
     const facialConvexityDeg = parseFloat(((convexityRad * 180) / Math.PI).toFixed(1));
 
-    // Population evaluations with explicit ESTIMATED tag
-    const evalParam = (id, val) => PopulationReferenceDB.evaluate(id, val, gender);
+    // The MediaPipe depth channel is a monocular mesh proxy, not a calibrated
+    // anatomical depth measurement.  Expose a value when finite, but do not
+    // manufacture a normative score from a population table.
+    const proxyMetric = (id, val) => {
+      if (!Number.isFinite(val)) {
+        return {
+          id,
+          rawVal: null,
+          score100: null,
+          status: 'NOT_OBSERVABLE',
+          domain: 'ESTIMATED 3D',
+          referenceRange: 'Unavailable from this image',
+          confidence: 0
+        };
+      }
+      return {
+        id,
+        rawVal: val,
+        score100: null,
+        status: 'ESTIMATED',
+        domain: 'ESTIMATED 3D',
+        referenceRange: 'Single-image mesh proxy; no population target',
+        confidence: 35
+      };
+    };
 
     const metrics = {
       facialConvexity: {
-        ...evalParam('facialConvexity', facialConvexityDeg),
-        status: 'ESTIMATED',
-        domain: 'ESTIMATED 3D'
+        ...proxyMetric('facialConvexity', facialConvexityDeg)
       },
       nasalProjection: {
-        ...evalParam('nasalProjectionIndex3D', nasalProjectionRatio),
-        status: 'ESTIMATED',
-        domain: 'ESTIMATED 3D'
+        ...proxyMetric('nasalProjectionIndex3D', nasalProjectionRatio)
       },
       chinProjection: {
-        ...evalParam('chinProjectionIndex3D', chinProjectionRatio),
-        status: 'ESTIMATED',
-        domain: 'ESTIMATED 3D'
+        ...proxyMetric('chinProjectionIndex3D', chinProjectionRatio)
       },
       malarProminence: {
-        ...evalParam('malarProminenceIndex3D', malarProminenceRatio),
-        status: 'ESTIMATED',
-        domain: 'ESTIMATED 3D'
+        ...proxyMetric('malarProminenceIndex3D', malarProminenceRatio)
       }
     };
 
@@ -114,15 +129,15 @@ class Morphology3DEngine {
       status: 'ESTIMATED',
       confidence: 68,
       depths: {
-        nasalProjectionIndex: `${nasalProjectionRatio} (Ratio)`,
-        chinProjectionIndex: `${chinProjectionRatio} (Ratio)`,
+        nasalProjectionIndex: Number.isFinite(nasalProjectionRatio) ? `${nasalProjectionRatio} (Ratio)` : 'Unavailable',
+        chinProjectionIndex: Number.isFinite(chinProjectionRatio) ? `${chinProjectionRatio} (Ratio)` : 'Unavailable',
         orbitalVectorDesc: orbitalVectorDesc,
-        browProminenceIndex: `${browProminenceRatio} (Ratio)`,
-        malarProminenceIndex: `${malarProminenceRatio} (Ratio)`,
+        browProminenceIndex: Number.isFinite(browProminenceRatio) ? `${browProminenceRatio} (Ratio)` : 'Unavailable',
+        malarProminenceIndex: Number.isFinite(malarProminenceRatio) ? `${malarProminenceRatio} (Ratio)` : 'Unavailable',
         facialConvexityDeg: `${facialConvexityDeg}° (3D Est.)`
       },
       metrics,
-      score3D: Math.max(30, Math.min(92, Math.round(metrics.facialConvexity.score100 * 0.60 + 30)))
+      score3D: null
     };
   }
 }

@@ -7,8 +7,8 @@
   <!-- Maximum SEO Meta Tags -->
   <title>HSAY — How sexy are you? | 3D DeepScan Facial Morphometry & Attractiveness Test</title>
   <meta name="title" content="HSAY — How sexy are you? | 3D DeepScan Facial Morphometry & Attractiveness Test">
-  <meta name="description" content="Calculate your Scientific Facial Attractiveness (0–100), Sexual Dimorphism, and PSL Looksmax Community Score across 40+ biometric dimensions using 478 3D landmarks and OpenCV CIELAB dermatology.">
-  <meta name="keywords" content="how sexy are you, HSAY, facial attractiveness, 3D face scan, facial morphometry, cephalometrics, fWHR, hunter eyes, PSL score, looksmax tiers, canthal tilt, facial symmetry, facial harmony, aesthetic potential, тест привлекательности лица, оценка внешности по фото">
+  <meta name="description" content="HSAY is a local, rule-based facial morphometry tool for exploring photo-derived proportions, symmetry, skin presentation, and profile geometry with transparent limitations.">
+  <meta name="keywords" content="HSAY, facial morphometry, cephalometrics, fWHR, canthal tilt, facial symmetry, facial proportions, photo quality, оценка пропорций лица, анализ лица по фото">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="yandex" content="index, follow">
@@ -26,7 +26,7 @@
   <meta property="og:site_name" content="HSAY — How sexy are you?">
   <meta property="og:url" content="https://adiru3.github.io/hsay/">
   <meta property="og:title" content="HSAY — How sexy are you? | 3D DeepScan Facial Morphometry">
-  <meta property="og:description" content="Scientific facial attractiveness, sexual dimorphism, and PSL Looksmax community ratings powered by 478 3D landmarks and OpenCV CIELAB dermatology.">
+  <meta property="og:description" content="Transparent photo-based facial morphometry and rule-based proportion analysis.">
   <meta property="og:image" content="https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/sparkles.svg">
   <meta property="og:image:alt" content="HSAY 3D DeepScan Facial Morphometry Logo">
   <meta property="og:locale" content="en_US">
@@ -49,7 +49,7 @@
         "@id": "https://adiru3.github.io/hsay/#webapp",
         "name": "HSAY - How sexy are you?",
         "url": "https://adiru3.github.io/hsay/",
-        "description": "Scientific 3D deepscan facial morphometry, evolutionary biology analysis, and 3 independent attractiveness models.",
+        "description": "Transparent photo-based facial morphometry and rule-based proportion analysis.",
         "applicationCategory": "HealthAndFitnessApplication",
         "operatingSystem": "All",
         "browserRequirements": "Requires WebGL, WebAssembly, and Canvas support",
@@ -68,11 +68,11 @@
         },
         "featureList": [
           "478 3D MediaPipe Facial Landmarks Detection",
-          "Frankfurt 3D Plane & 85mm Lens Rectification",
-          "3 Independent Models: Scientific, Sexual Dimorphism, PSL Looksmax",
+          "Roll alignment and scale-normalised photo measurements",
+          "Three transparent rule-based fit indices",
           "OpenCV CIELAB Skin Color Uniformity & Microrelief Analysis",
           "Sagittal 90° Cephalometrics (Gonial angle, E-Line, Cervicomental)",
-          "Hypothetical Appearance Optimization Potential Assessment",
+          "Action-priority report with measurement limits",
           "100% Comprehensive Scientific Optimization Protocols"
         ]
       },
@@ -85,7 +85,7 @@
             "name": "What is HSAY (How sexy are you)?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "HSAY is an advanced scientific facial morphometry platform that calculates your Scientific Facial Attractiveness, Sexual Attractiveness, and PSL Looksmax Community Rating across 40+ biometric dimensions using 478 3D landmarks."
+              "text": "HSAY is a local, rule-based facial morphometry tool that reports photo-derived proportions, symmetry, skin presentation, and profile geometry. It does not predict a person's social attractiveness or population rank."
             }
           },
           {
@@ -93,7 +93,7 @@
             "name": "How does HSAY calculate facial attractiveness scientifically?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "HSAY normalizes photos using an 85mm portrait standard and Frankfurt Horizontal plane, then measures craniofacial proportions, periorbital harmony, fluctuating symmetry, OpenCV CIELAB dermatology, and compares them against demographic normal CDF distributions."
+              "text": "HSAY aligns roll and image scale, then reports photograph-derived proportions, periorbital geometry, bilateral balance, skin-presentation proxies, and estimated single-image depth proxies. A single photo cannot provide a clinical diagnosis or physical millimetres."
             }
           },
           {
@@ -249,7 +249,7 @@
             <span>Current Slot: <strong>Frontal Portrait Photo</strong></span>
           </div>
           <div style="font-size: 0.78rem; color: var(--text-muted);" data-i18n="calibrationInfo">
-            Frankfurt 3D / Lens 85mm Rectified
+            Roll alignment / scale-normalised
           </div>
         </div>
 
@@ -285,7 +285,7 @@
           </div>
           <div id="calibrationBadge" class="calibration-badge">
             <i data-lucide="check-check" style="width: 12px; height: 12px;"></i>
-            <span>Frankfurt 3D / Lens 85mm</span>
+            <span>Roll alignment / scale normalisation</span>
           </div>
         </div>
 
@@ -327,7 +327,7 @@
           <span class="toggle-chip active" data-layer="alignment">Axes & Tilt</span>
           <span class="toggle-chip active" data-layer="thirds">Thirds & Fifths</span>
           <span class="toggle-chip active" data-layer="symmetry">Symmetry & FA</span>
-          <span class="toggle-chip active" data-layer="hunter">Hunter Eyes Box</span>
+          <span class="toggle-chip active" data-layer="hunter">Eye Geometry Box</span>
           <span class="toggle-chip" data-layer="depth3D">3D Depth Vectors</span>
         </div>
 
@@ -352,32 +352,42 @@
         <div style="width: 64px; height: 64px; background: rgba(6, 182, 212, 0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
           <i data-lucide="scan-face" style="width: 32px; height: 32px; color: var(--accent-cyan);"></i>
         </div>
-        <h2 style="font-size: 1.45rem; font-weight: 700; margin-bottom: 0.75rem;" data-i18n="welcomeTitle">100% Scientific Coverage of Facial Attractiveness</h2>
+        <h2 style="font-size: 1.45rem; font-weight: 700; margin-bottom: 0.75rem;" data-i18n="welcomeTitle">Research-Informed Multi-Domain Facial Analysis</h2>
         <p style="color: var(--text-muted); font-size: 0.92rem; max-width: 520px; margin: 0 auto 1.5rem auto;" data-i18n="welcomeDesc">
-          Advanced multi-stage pipeline combining 2D craniofacial anthropometry, 90° sagittal cephalometrics, OpenCV CIELAB dermatology, monocular 3D reconstruction, and population statistics with 3 independent evaluation models.
+          Transparent photo pipeline combining 2D craniofacial measurements, sagittal profile proxies, pixel-based skin presentation, and clearly labelled single-image 3D estimates. It provides rule-based fit indices, not a social ranking.
         </p>
 
         <!-- Academic Matrix Explanation Pills -->
         <div class="matrix-overview-grid">
           <div class="matrix-mini-card border-emerald">
-            <span class="matrix-weight-tag text-emerald">35% Weight</span>
-            <strong>Sexual Dimorphism & Hormones</strong>
-            <p>Gonial angle, brow ridge, fWHR, Ramus index, lip volume</p>
+            <span class="matrix-weight-tag text-emerald">16.7% · Model A</span>
+            <strong>Configuration balance</strong>
+            <p>Scale-free landmark configuration and bilateral level balance</p>
           </div>
           <div class="matrix-mini-card border-cyan">
-            <span class="matrix-weight-tag text-cyan">30% Weight</span>
-            <strong>Craniofacial Anthropometry</strong>
-            <p>Midface, E-Line, thirds, fifths, facial convexity G-Sn-Pog</p>
+            <span class="matrix-weight-tag text-cyan">16.7% · Model A</span>
+            <strong>Craniofacial proportions</strong>
+            <p>fWHR, midface, thirds, fifths and lower-face proportions</p>
           </div>
           <div class="matrix-mini-card border-gold">
-            <span class="matrix-weight-tag text-gold">20% Weight</span>
-            <strong>Facial Fat & Skin Quality</strong>
-            <p>Cheek Hollow, CIELAB σ(a*, b*), Laplacian microrelief, carotenoid b*</p>
+            <span class="matrix-weight-tag text-gold">16.7% · Model A</span>
+            <strong>Periorbital geometry</strong>
+            <p>Canthal tilt, eye aperture, relative scleral exposure and orbital compactness</p>
           </div>
           <div class="matrix-mini-card border-purple">
-            <span class="matrix-weight-tag text-purple">15% Weight</span>
-            <strong>Fluctuating Symmetry</strong>
-            <p>24 bilateral FA landmark pairs, sagittal midline coaxiality</p>
+            <span class="matrix-weight-tag text-purple">16.7% · Model A</span>
+            <strong>Bilateral balance</strong>
+            <p>Landmark-pair balance and facial midline alignment</p>
+          </div>
+          <div class="matrix-mini-card border-gold">
+            <span class="matrix-weight-tag text-gold">16.7% · Model A</span>
+            <strong>Skin presentation proxy</strong>
+            <p>Image-derived luminance, texture and under-eye contrast proxies</p>
+          </div>
+          <div class="matrix-mini-card border-emerald">
+            <span class="matrix-weight-tag text-emerald">16.7% · Model A</span>
+            <strong>Cross-feature harmony</strong>
+            <p>Transparent relationships between measured facial proportions</p>
           </div>
         </div>
       </div>
@@ -385,7 +395,7 @@
       <!-- Dashboard Results -->
       <div id="resultsDashboard" class="results-dashboard hidden">
         
-        <!-- 3 INDEPENDENT SCORE HERO CARDS GRID -->
+        <!-- THREE TRANSPARENT RULE-BASED SCORE CARDS -->
         <div class="three-models-grid">
           
           <!-- Model A: Perceived Facial Attractiveness -->
@@ -414,19 +424,19 @@
             </div>
 
             <div class="model-hero-meta">
-              <div id="sciPercentileText" class="model-percentile-text">Predicted human-rating percentile: 74%</div>
-              <div id="sciUncertaintyText" class="model-ci-text">Prediction uncertainty: ±6</div>
-              <div id="sciConfidenceText" class="model-ci-text">Model confidence: 84%</div>
+              <div id="sciPercentileText" class="model-percentile-text">Structural balance index: rule-based photo heuristic</div>
+              <div id="sciUncertaintyText" class="model-ci-text">Photo-sensitivity range: pending analysis</div>
+              <div id="sciConfidenceText" class="model-ci-text">Photo reliability: pending analysis</div>
             </div>
           </div>
 
-          <!-- Model B: Perceived Facial Sexual Attractiveness -->
+          <!-- Model B: Feature definition and visual freshness -->
           <div class="model-hero-card border-rose-glow">
             <div class="model-hero-head">
               <span class="domain-chip badge-scientific">MODEL B</span>
               <span class="model-hero-sub" data-i18n="heroSexualSubtitle">Research-Informed Model</span>
             </div>
-            <h3 class="model-hero-title" data-i18n="heroSexualTitle">Perceived Facial Sexual Attractiveness</h3>
+            <h3 class="model-hero-title" data-i18n="heroSexualTitle">Feature Definition &amp; Freshness</h3>
             
             <div class="score-ring-wrapper">
               <svg class="score-circle-svg" viewBox="0 0 160 160">
@@ -446,18 +456,18 @@
             </div>
 
             <div class="model-hero-meta">
-              <div id="sexPercentileText" class="model-percentile-text">Predicted sexual attractiveness percentile: 81%</div>
-              <div id="sexUncertaintyText" class="model-ci-text">Prediction uncertainty: ±7</div>
+              <div id="sexPercentileText" class="model-percentile-text">Feature definition and visual-freshness index</div>
+              <div id="sexUncertaintyText" class="model-ci-text">Photo-sensitivity range: pending analysis</div>
             </div>
           </div>
 
-          <!-- Model C: PSL Looksmax Community Score -->
+          <!-- Model C: PSL-inspired geometry heuristic -->
           <div class="model-hero-card border-gold-glow">
             <div class="model-hero-head">
-              <span class="domain-chip badge-community">MODEL C</span>
-              <span class="model-hero-sub" data-i18n="heroPslSubtitle">Community Metric</span>
+              <span class="domain-chip badge-3d">MODEL C</span>
+              <span class="model-hero-sub" data-i18n="heroPslSubtitle">Rule-Based Heuristic</span>
             </div>
-            <h3 class="model-hero-title" data-i18n="heroPslTitle">PSL Community Rating</h3>
+            <h3 class="model-hero-title" data-i18n="heroPslTitle">PSL-Inspired Geometry Index</h3>
             
             <div class="psl-score-display-box">
               <div id="pslScoreVal" class="psl-score-val text-gold">0.0</div>
@@ -466,7 +476,7 @@
 
             <div class="model-hero-meta">
               <div id="pslTierBadge" class="tier-badge tier-b">HIGH / ABOVE AVERAGE</div>
-              <div id="pslPercentileText" class="model-percentile-text">Community percentile: 75%</div>
+              <div id="pslPercentileText" class="model-percentile-text">Rule-based geometry heuristic; not a population percentile</div>
             </div>
           </div>
 
@@ -475,40 +485,40 @@
         <!-- Equal-Weight Multi-Domain Architecture Badge Banner -->
         <div class="equal-weight-chip-banner">
           <i data-lucide="layers" style="width: 14px; height: 14px; color: #fda4af;"></i>
-          <span data-i18n="equalWeightBanner">6 predefined domains · equal-weight aggregation</span>
+          <span data-i18n="equalWeightBanner">Six equal-weight domains · photo-derived heuristic</span>
         </div>
 
         <!-- Reliability Meter Container (Injected dynamically) -->
         <div id="reliabilityMeterContainer"></div>
 
 
-        <!-- Aesthetic Potential Card (Model Estimate) -->
+        <!-- Action Priority Card -->
         <div id="potentialCard" class="potential-hero-card glass-card">
           <div class="potential-header">
             <div class="potential-title-group">
               <div class="potential-icon"><i data-lucide="trending-up" style="width: 22px; height: 22px; color: var(--accent-gold);"></i></div>
               <div>
-                <div class="potential-title" data-i18n="potentialCardTitle">Hypothetical Appearance Optimization Potential</div>
-                <div class="potential-subtitle" id="potentialSubtitle" data-i18n="potentialCardSubtitle">Estimated theoretical ceiling under comprehensive physical and dermatological optimization (Model Estimate)</div>
+                <div class="potential-title" data-i18n="potentialCardTitle">Repeat-Photo Upper Bound</div>
+                <div class="potential-subtitle" id="potentialSubtitle" data-i18n="potentialCardSubtitle">Upper photo-sensitivity bound only; not a prediction of maximum appearance or treatment outcome.</div>
               </div>
             </div>
-            <div id="potentialModelEstimateBadge" class="tier-badge tier-s" data-i18n="potentialModelEstimateTag">MODEL ESTIMATE (Non-guaranteed)</div>
+            <div id="potentialModelEstimateBadge" class="tier-badge tier-s" data-i18n="potentialModelEstimateTag">NOT AN APPEARANCE FORECAST</div>
           </div>
 
           <div class="potential-metric-comparison">
             <div class="potential-score-box">
-              <span class="potential-box-label" data-i18n="potentialCurrentLevel">Current Score</span>
+              <span class="potential-box-label" data-i18n="potentialCurrentLevel">Current Balance Index</span>
               <div class="potential-box-value text-cyan" id="currentScorePill">0 / 100</div>
             </div>
 
             <div class="potential-arrow-divider">
               <i data-lucide="arrow-right" style="width: 24px; height: 24px; color: var(--accent-gold);"></i>
-              <span class="potential-delta-badge" id="potentialDeltaBadge">+0 pts growth</span>
+              <span class="potential-delta-badge" id="potentialDeltaBadge">no score forecast</span>
             </div>
 
             <div class="potential-score-box">
-              <span class="potential-box-label" data-i18n="potentialTargetLevel">Optimization Ceiling</span>
-              <div class="potential-box-value text-gold" id="potentialScorePill">0 / 100</div>
+              <span class="potential-box-label" data-i18n="potentialTargetLevel">Photo upper bound</span>
+              <div class="potential-box-value text-gold" id="potentialScorePill">≤ 0 / 100</div>
             </div>
           </div>
 
@@ -520,12 +530,27 @@
             </div>
             <div class="potential-bar-labels">
               <span id="potentialCurrentLabel">Current: 0</span>
-              <span id="potentialTargetLabel">Ceiling: 0 (Top 1%)</span>
+              <span id="potentialTargetLabel">Review areas, not an outcome forecast.</span>
             </div>
           </div>
 
           <!-- Reserves Breakdown Grid -->
           <div id="potentialReservesGrid" class="potential-reserves-grid"></div>
+        </div>
+
+        <!-- Coverage map: observed inputs, proxies and deliberately missing domains -->
+        <div id="coverageCard" class="coverage-card glass-card">
+          <div class="coverage-header">
+            <div>
+              <div class="chart-card-header">
+                <i data-lucide="clipboard-check" class="text-cyan" style="width:20px;height:20px;"></i>
+                <span id="coverageTitle">Coverage Map &amp; Missing Inputs</span>
+              </div>
+              <p id="coverageSummary" class="coverage-summary">The report distinguishes observed geometry, photo proxies and information a still image cannot provide.</p>
+            </div>
+            <span id="coverageBadge" class="tier-badge tier-b">TRACEABLE CHECKLIST</span>
+          </div>
+          <div id="coverageGrid" class="coverage-grid"></div>
         </div>
 
         <!-- Scientific Matrix Breakdown Card (Visible in Composite Mode) -->
@@ -546,7 +571,7 @@
 
             <div class="matrix-bar-item">
               <div class="matrix-bar-head">
-                <span data-i18n="matrixAnthroLabel">2. Craniofacial Anthropometry & Proportions (30%)</span>
+                <span data-i18n="matrixAnthroLabel">2. Craniofacial proportions (Model A: 16.7%)</span>
                 <strong id="matrixAnthroVal" class="text-cyan">0 / 100</strong>
               </div>
               <div class="progress-bar-bg"><div id="matrixAnthroBar" class="progress-bar-fill bg-cyan"></div></div>
@@ -554,7 +579,7 @@
 
             <div class="matrix-bar-item">
               <div class="matrix-bar-head">
-                <span data-i18n="matrixSkinLabel">3. Facial Adiposity & Skin Quality (20%)</span>
+                <span data-i18n="matrixSkinLabel">3. Skin and soft-tissue photo proxy (Model A: 16.7%)</span>
                 <strong id="matrixSkinVal" class="text-gold">0 / 100</strong>
               </div>
               <div class="progress-bar-bg"><div id="matrixSkinBar" class="progress-bar-fill bg-gold"></div></div>
@@ -562,7 +587,7 @@
 
             <div class="matrix-bar-item">
               <div class="matrix-bar-head">
-                <span data-i18n="matrixSymLabel">4. Fluctuating Symmetry (15%)</span>
+                <span data-i18n="matrixSymLabel">4. Bilateral balance (Model A: 16.7%)</span>
                 <strong id="matrixSymVal" class="text-purple">0 / 100</strong>
               </div>
               <div class="progress-bar-bg"><div id="matrixSymBar" class="progress-bar-fill bg-purple"></div></div>
@@ -591,8 +616,8 @@
                 <i data-lucide="layers" class="text-purple" style="width: 20px; height: 20px;"></i>
                 <span data-i18n="activeModuleStructure">Active Module Structure</span>
               </div>
-              <p id="summaryCardDesc" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n="academicPercentilesDesc">
-                Academic Z-Scores and population percentiles calculated across all biometric dimensions:
+            <p id="summaryCardDesc" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n="academicPercentilesDesc">
+                Transparent image-derived module scores. Fixed reference intervals are code anchors, not population percentiles.
               </p>
               
               <div id="dynamicSubBars" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
@@ -648,27 +673,27 @@
             <i data-lucide="chevron-down" class="faq-chevron"></i>
           </summary>
           <div class="faq-body">
-            <p>HSAY is a state-of-the-art computational facial analysis platform that processes portrait and profile photography using 478 3D MediaPipe landmarks, 85mm portrait perspective rectification, Frankfurt Horizontal alignment, and OpenCV CIELAB dermatology. It measures 40+ biometric ratios and evaluates them across 3 independent models: Scientific Attractiveness, Sexual Dimorphism, and the Looksmax PSL Rating.</p>
+            <p>HSAY is a local, rule-based facial morphometry tool for portrait and profile photography. It measures photo-derived proportions, bilateral balance, skin-presentation proxies, and estimated single-image depth proxies. Roll and scale are normalised; a photograph is not converted into clinical 3D data or physically rectified to an 85 mm lens.</p>
           </div>
         </details>
 
         <details class="faq-item">
           <summary class="faq-summary">
-            <strong>How are the 3 independent models calculated?</strong>
+            <strong>How are the three report indices calculated?</strong>
             <i data-lucide="chevron-down" class="faq-chevron"></i>
           </summary>
           <div class="faq-body">
-            <p>Rather than a single arbitrary score, HSAY computes 3 distinct scores: (1) <em>Scientific Facial Attractiveness (0–100)</em> based on evolutionary biology, averageness, symmetry, and craniofacial proportions; (2) <em>Facial Sexual Attractiveness (0–100)</em> weighted by secondary sexual dimorphism and bone massiveness; and (3) <em>PSL Rating (1.0–10.0)</em> calibrated against community aesthetic standards into 7 discrete tiers (Low to Elite).</p>
+            <p>HSAY computes three transparent, code-defined indices: (1) <em>Structural Balance (0–100)</em> from proportions, eyes, bilateral balance, skin presentation, configuration, and cross-feature harmony; (2) <em>Feature Definition &amp; Freshness (0–100)</em> from a selected sex-profile fit, lower-face geometry, eye configuration, freshness proxy, symmetry, and skin presentation; and (3) a <em>PSL-inspired geometry heuristic (1.0–9.0)</em>. None of these is a prediction of social attractiveness, sexual attractiveness, a community score, or a population percentile.</p>
           </div>
         </details>
 
         <details class="faq-item">
           <summary class="faq-summary">
-            <strong>What is fWHR, Canthal Tilt, and the Hunter Eyes metric?</strong>
+            <strong>What are fWHR, Canthal Tilt, and the Eye Geometry Composite?</strong>
             <i data-lucide="chevron-down" class="faq-chevron"></i>
           </summary>
           <div class="faq-body">
-            <p><strong>fWHR (Facial Width-to-Height Ratio):</strong> Bizygomatic cheekbone width divided by midface height (glabella to upper lip), reflecting facial compactness. <strong>Canthal Tilt:</strong> The angle between inner (endocanthion) and outer (exocanthion) eye corners. <strong>Hunter Eyes:</strong> A community composite reflecting positive canthal tilt, minimal lower scleral show, tight palpebral aspect ratio, and supraorbital compactness.</p>
+            <p><strong>fWHR (Facial Width-to-Height Ratio):</strong> cheekbone width divided by upper-face height (nasion to stomion) in this implementation. <strong>Canthal Tilt:</strong> the angle between inner and outer eye corners. <strong>Eye Geometry Composite:</strong> a transparent photo proxy combining tilt, relative lower scleral exposure, palpebral aspect ratio, and orbital compactness; it is not a clinical measurement or social ranking.</p>
           </div>
         </details>
 
